@@ -1,0 +1,64 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% v1.0.0
+% lab-report-template
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[twocolumn]{article}
+
+% Include packages and document structure
+\include{style}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%               HEADER
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{
+    \vspace{-1cm}
+    \includegraphics[height=2.5cm]{imgs/logo-unipd.pdf}
+    %%%%% Metterci il logo di DM Math
+    %\hfill
+    %\includegraphics[height=2.5cm]{imgs/logo-dei.pdf}
+    \par
+    \vspace{0.5cm}
+    \textbf{Laboratory Report}\\
+    Report Title
+}
+\author{
+    Author: {Name Surname} \\
+    Supervisor: {Name Surname}
+}
+
+\date{27/07/2022}
+
+% Document begin
+\begin{document}
+\maketitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                 BODY
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Objectives
+\section{Objectives}
+\lipsum[1]
+
+%% Setup description
+\section{Setup description}
+\lipsum[2-4]
+%% Results
+\section{Results}
+\lipsum[5-8]
+
+%% Conclusions
+\section{Conclusions}
+\lipsum[1]
+
+%% Example
+\clearpage
+\input{example}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%             BIBLIOGRAPHY
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bibliographystyle{apalike2}
+\bibliography{references}
+
+\end{document}
