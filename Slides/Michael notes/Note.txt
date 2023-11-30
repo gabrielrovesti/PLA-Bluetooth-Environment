@@ -1,0 +1,6 @@
+SLIDE 17
+- aggiunto ultimo punto evidenziato (l'evidenziatore va poi tolto, una volta confermato il cambiamento)
+
+SLIDE 18
+- primo punto eliminato --> solo spostato nella slide precedente dato che riguarda il risultato dello studio e non un comportamento generale
+- secondo punto eliminato --> lo cito a voce nel primo punto in cui parlo dell'entropia e in questo scenario questo punto mi sembra superfluo
