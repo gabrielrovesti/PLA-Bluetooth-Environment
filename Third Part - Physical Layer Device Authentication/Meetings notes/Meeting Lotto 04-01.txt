@@ -1,0 +1,38 @@
+Attivo = Inserire Tag embedded in fase autenticativa
+Girare i related work per mail
+
+Idea documentale:
+
+- Scrivere appunti per related work (dando le nostre idee sulla letteratura)
+anche rispetto a cose che non tornano
+- Major focus: vulnerabilità canale - ma nessun focus sulla sicurezza PL
+- Non c'è abbastanza materiale da pura related work, ma focus sulle vulnerabilità
+- Ecco perché vogliamo fare questa cosa - perché su Bluetooth/perché su PL
+(considerazioni crittografiche/future)
+
+Idea pratica/teorica:
+
+- Iniziare a scrivere la simulazione (prima implementazione - creazione setup): 
+generare il segnale del messaggio, generare il segnale di autenticazione 
+(definisca la potenza e la forma, con quantità di bit, realizzando la codifica negli appunti)
+
+- Dato gli stream di bit in input, genera il segnale di output (sia dati che autenticazione)
+e che li sovrapponga insieme 
+
+- Modulo decodificatore: ricevuto il segnale di output, da quello riesce a distinguere
+il livello di segnale dati e autenticazione
+- Partendo dagli appunti, implementiamo dei moduli che realizzino il segnale blu, 
+il segnale in rosso li sommino e genera il segnale viola. 
+Il ricevitore sìriceve il segnale viola e riesce a ricostruire i singoli segnali
+(blu e rosso)
+
+Successivamente (con calma questa):
+- Capire poi come aggiungere il rumore e simulare l'azione del canale, 
+quindi effettuando la decodifica (es. informando l'utente del rumore, etc.)
+
+Linguaggio di programmazione e strutture dati:
+- MATLAB 
+
+Capire a cosa siamo interessati nella simulazione:
+- ci interessa il valore di picco del segnale in certi intervalli di tempo
+- siamo interessati al segnale continuo o al segnale discreto?
