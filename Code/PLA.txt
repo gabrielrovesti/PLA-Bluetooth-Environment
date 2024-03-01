@@ -1,0 +1,20 @@
+SIMULAZIONE (MATLAB):
+1) Generare segnale messaggio + segnale potenza + segnale autenticazione 
+(per generare intendiamo generare la potenza del segnale --> forma sinusoidale, ecc.)
+- Dato lo string di bit in input mi genera i bit di output (segnale + autenticazione) e li sovrapponga insieme
+- Dato il segnale di output vogliamo un decodificatore che consenta di interpretare il segnale originale e il segnale di autenticazione
+- Il ricevitore prende il segnale viola (blu = segnale dati/rosso = segnale autenticazione)
+
+POI:
+- capire come aggiungere il rumore
+- come capire l'azione del canale
+- come decodificare il rumore (come il destinatario capisce questo rumore?)
+
+Osservazione:
+- interessano i valori di picco dato che si tratta di campionamento
+    - aka valori discreti che consentano di capire dal segnale somma i dati e l'autenticazione 
+    - interessante per un attaccante
+- per questi motivi --> aggiungiamo il rumore 
+    - dato dalle informazioni del canale stesso (Channel State Information)
+noi siamo interessati al valore di picco del segnale in certi intervalli di tempo: 
+siamo interessati più al segnale discreto che a quello continuo
