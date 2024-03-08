@@ -1,0 +1,21 @@
+- Canale Bluetooth
+	- Parametri energetici e di distanza (entro 150 m.) ma con anche altre possibili distanze (e.g., range)
+	- Assumiamo di conoscere del canale (tripletta du valori di input) - trasmettitore/ricevitore
+		- la potenza (x)
+		- il dato (casuale in un intervallo) (y)
+		- segnale autenticazione (z) - contiene la chiave e la sua lunghezza
+	- Generazione segnali sulla base della tripletta
+		- false alarm = mixare il dato "n" volte con l'autenticazione --> quanti messaggi non legittimi rifiutati
+		- misdetection = probabilità di essere distante dai valori di riferimento di soglia (threshold) --> quanti messaggi non legittimi vengono accettati
+	- Threshold dipendente dai picchi di segnale
+		- Distanza di Hamming = diff. tra segnale inviato e segnale ricevuto
+		- Sotto threshold = messaggio non legittimo non accettato
+		- Sopra threshold = messaggio non legittimo accettato
+		- Quantità di bit lontani dalla distanza con threshold
+	- Ricevitore riceve il segnale
+	- Decodifica del segnale sulla base della distanza
+	- Misura fading (decadimento) del segnale al ricevitore
+		- Differenza valori assoluti picchi ricevitore
+		- Effetti interferenza (qui va il calcolo del rumore, si calcola SINR)
+	- Controllo di quanti bit sbagliati rispetto alla distanza con il segnale originale
+	
