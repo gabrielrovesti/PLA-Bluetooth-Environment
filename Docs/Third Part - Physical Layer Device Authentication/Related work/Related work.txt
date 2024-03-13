@@ -1,4 +1,8 @@
-https://www.usenix.org/system/files/sec20-zhang-yue.pdf
-https://arxiv.org/pdf/2303.00307.pdf
-https://www.researchgate.net/publication/326511381_Security_Vulnerabilities_in_Bluetooth_Technology_as_Used_in_IoT
-https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=7498103&casa_token=O-ikgK0_6ysAAAAA:JV4e5HVTr_dam167QWeyFKdM9Crnei7nBw_Lye_IbOwRob1oCXdss-mmESy8jOuKFb5nUcw&tag=1z
+- Breaking Secure Pairing of Bluetooth Low Energy 
+Using Downgrade Attacks: https://www.usenix.org/system/files/sec20-zhang-yue.pdf
+- Access-based Lightweight Physical Layer
+Authentication for the Internet of Things Devices: https://arxiv.org/pdf/2303.00307.pdf
+- Security Vulnerabilities in Bluetooth Technology as Used in IoT: https://www.researchgate.net/publication/326511381_Security_Vulnerabilities_in_Bluetooth_Technology_as_Used_in_IoT
+- Physical-Layer Authentication for
+Wireless Security Enhancement:
+Current Challenges and Future Developments: https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=7498103&casa_token=O-ikgK0_6ysAAAAA:JV4e5HVTr_dam167QWeyFKdM9Crnei7nBw_Lye_IbOwRob1oCXdss-mmESy8jOuKFb5nUcw&tag=1z
