@@ -5,8 +5,10 @@
 		- il dato (casuale in un intervallo) (y)
 		- segnale autenticazione (z) - contiene la chiave e la sua lunghezza
 	- Generazione segnali sulla base della tripletta
-		- false alarm = mixare il dato "n" volte con l'autenticazione --> quanti messaggi non legittimi rifiutati
-		- misdetection = probabilità di essere distante dai valori di riferimento di soglia (threshold) --> quanti messaggi non legittimi vengono accettati
+		- false alarm = mixare il dato "n" volte con l'autenticazione
+			- quanti messaggi legittimi rifiutati
+		- misdetection = probabilità di essere distante dai valori di riferimento di soglia 
+			- (threshold) --> quanti messaggi non legittimi vengono accettati (al momento in sospeso)
 	- Threshold dipendente dai picchi di segnale
 		- Distanza di Hamming = diff. tra segnale inviato e segnale ricevuto
 		- Sotto threshold = messaggio non legittimo non accettato
@@ -18,4 +20,8 @@
 		- Differenza valori assoluti picchi ricevitore
 		- Effetti interferenza (qui va il calcolo del rumore, si calcola SINR)
 	- Controllo di quanti bit sbagliati rispetto alla distanza con il segnale originale
+
+Ripetete le simulazioni N volte
+	- in modo da ricavare una statistica
+		- variare ogni volta il messaggio data e la chiave di autenticazione
 	
