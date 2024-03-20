@@ -44,7 +44,10 @@ for i = 1:N
 
     % Decodifica del segnale sulla base della distanza
     % messaggio_ricevuto = decode_signal(segnale_ricevuto);
+
     
+
+    % Inserire "if" della threshold
     
     % Calcolo del fading del segnale
     fading(i) = calculate_fading(segnale_ricevuto);
@@ -87,7 +90,14 @@ title('Rapporto Segnale/Rumore (SNR)');
 xlabel('Numero di Simulazioni');
 ylabel('SNR (scala lineare)');
 grid on;
-show;
+
+% Errori
+subplot(2, 1, 1);
+bar([sum(errori), sum(num_messaggi_non_legittimi_accettati), sum(num_messaggi_legittimi_rifiutati)], 'FaceColor', 'cyan');
+xticks(1:3);
+xticklabels({'Errori totali', 'Messaggi non legittimi accettati', 'Messaggi legittimi rifiutati'});
+ylabel('Numero bit errati');
+title('Statistiche degli errori');
 
 function segnale_autenticazione = mix_signal(dato, chiave)
     % Verifica e adattamento delle lunghezze del dato casuale e della chiave di autenticazione
