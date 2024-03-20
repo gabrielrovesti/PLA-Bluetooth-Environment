@@ -34,8 +34,8 @@ for i = 1:N
     distanza_hamming(i) = calculate_hamming_distance(dato_casuale, segnale_autenticazione);
 
     % Calcolo della percentuale di bit errati
-    percentuale = (sum(errori(1:i)) / (length(dato_casuale) * i)) * 100; % Percentuale di bit errati sul totale dei bit inviati
-
+    percentuale = (sum(errori(1:i)) / (length(dato_casuale) * i)) * 100;
+    
     % Calcolo della threshold
     threshold = calculate_threshold(distanza_hamming(i), percentuale);
 
@@ -80,8 +80,6 @@ histogram(potenza*ones(1, N), 'FaceColor', 'blue');
 xlabel('Potenza del segnale (dB)');
 ylabel('Numero di simulazioni');
 title('Distribuzione della potenza del segnale');
-xlim([min(potenza)*1.1, max(potenza)*1.1]); % Incremento del range dell'asse x del 10%
-
 
 subplot(2, 3, 2);
 histogram(distanza*ones(1, N), 'FaceColor', 'green');
