@@ -19,7 +19,7 @@
 	- Misura fading (decadimento) del segnale al ricevitore
 		- Differenza valori assoluti picchi ricevitore
 		- Effetti interferenza (qui va il calcolo del rumore, si calcola SINR)
-	- Controllo di quanti bit sbagliati rispetto alla distanza con il segnale originale
+	- Controllo di quanti bit sbagliati rispetto al segnale originale
 
 Ripetete le simulazioni N volte
 	- in modo da ricavare una statistica

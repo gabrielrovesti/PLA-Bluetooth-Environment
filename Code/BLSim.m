@@ -1,16 +1,12 @@
 % Parametri del canale (inizializzati)
-potenza = 10; % Potenza del segnale (dB)
-distanza = 100; % Distanza del canale (metri)
-autenticazione_chiave = 'key123'; % Chiave di autenticazione
+N = 100; % Numero di simulazioni
+potenza = zeros(1, N); % Potenza del segnale (dB)
+distanza = randi([1, 150]); % Generazione di distanza casuale tra 1 e 150 metri
+autenticazione_chiave = 'key123'; % Chiave di autenticazione (valore iniziale)
 autenticazione_lunghezza = length(autenticazione_chiave); % Lunghezza della chiave di autenticazione
 dato_casuale = randi([0, 1], 1, 100); % Dato casuale di lunghezza 100 bit
-N = 120; % Numero di simulazioni
 
 % Inizializzazione dei vettori per salvare i risultati
-num_messaggi_non_legittimi_accettati = zeros(1, N);
-num_messaggi_legittimi_rifiutati = zeros(1, N);
-distanza_hamming = zeros(1, N);
-fading = zeros(1, N);
 SNR = zeros(1, N);
 errori = zeros(1, N);
 
@@ -21,64 +17,57 @@ for i = 1:N
     % Generazione di un dato casuale di lunghezza 100 bit
     dato_casuale = randi([0, 1], 1, 100);
 
-    % Generazione di distanza casuale tra 1 e 150 metri
-    distanza = randi([1, 150]);
-
     % Generazione di potenza casuale tra -20 dBm e +20 dBm
-    potenza = randi([-20, 20]);
+    potenza(i) = randi([-20, 20]);
 
     % Generazione del segnale di autenticazione
-    segnale_autenticazione = mix_signal(dato_casuale, autenticazione_chiave);
+    segnale_autenticazione = mix_signal(dato_casuale, autenticazione_chiave, potenza(i));
 
-    % Calcolo della distanza di Hamming tra segnale inviato e ricevuto
-    distanza_hamming(i) = calculate_hamming_distance(dato_casuale, segnale_autenticazione);
-
-    % Calcolo della percentuale di bit errati
-    percentuale = (sum(errori(1:i)) / (length(dato_casuale) * i)) * 100;
+    % Ricezione del segnale dal canale (decodifica al ricevitore DA FARE POI)
+    segnale_ricevuto = receive_signal(potenza(i), distanza);
     
-    % Calcolo della threshold
-    threshold = calculate_threshold(distanza_hamming(i), percentuale);
-
-    % Ricezione del segnale dal canale
-    segnale_ricevuto = receive_signal(potenza, distanza);
-
-    % Decodifica del segnale sulla base della distanza
-    % messaggio_ricevuto = decode_signal(segnale_ricevuto);
+    % Controllo degli errori - qua al posto di dato casuale, serve il
+    % segnale di autenticazione
+    errori(i) = check_errors(segnale_ricevuto, segnale_autenticazione); 
     
-    
-    % Calcolo del fading del segnale
-    fading(i) = calculate_fading(segnale_ricevuto);
-
-    % Controllo degli errori
-    errori(i) = check_errors(messaggio_ricevuto, dato_casuale);
-    
-    % Conteggio dei messaggi non legittimi accettati e dei messaggi legittimi rifiutati
-    %%
+    %% Conteggio dei messaggi non legittimi accettati e dei messaggi legittimi rifiutati - DA FARE POI
 
     % Calcolo del rapporto segnale/rumore (SNR)
     % Calcolato come differenza tra la potenza del segnale e il path loss
     lambda = 0.125; % Lunghezza d'onda in metri (Bluetooth opera a circa 2.4 GHz)
     path_loss_dB = 20*log10(4*pi*distanza/lambda); % Calcolo del path loss in dB
-    SNR_dB = potenza - path_loss_dB; % SNR in dB
+    SNR_dB = potenza(i) - path_loss_dB; % SNR in dB
     SNR(i) = 10^(SNR_dB/10); % SNR in scala lineare
 end
 
+% Calcolo della media del numero di bit errati
+media_bit_errati = mean(errori);
+
+% Conteggio dei segnali con un numero di bit errati al di sopra e al di sotto della media
+num_segnali_sopra_media = sum(errori > media_bit_errati);
+num_segnali_sotto_media = sum(errori < media_bit_errati);
+
+disp(['Numero medio di bit errati: ', num2str(media_bit_errati)]);
+disp(['Numero di segnali con bit errati sopra la media: ', num2str(num_segnali_sopra_media)]);
+disp(['Numero di segnali con bit errati sotto la media: ', num2str(num_segnali_sotto_media)]);
+
+%% Qui prossimo calcolo del fading - dopo le simulazioni 
+
 %% Plot
-figure;
+
+min_potenza = min(potenza);
+max_potenza = max(potenza);
 
 % Creazione delle tabelle per ogni variabile
-tabella_potenza = table(min(potenza), max(potenza), 'VariableNames', {'Min Potenza (dB)', 'Max Potenza (dB)'});
-tabella_distanza = table(min(distanza), max(distanza), 'VariableNames', {'Min Distanza (m)', 'Max Distanza (m)'});
-tabella_distanza_hamming = table(min(distanza_hamming), max(distanza_hamming), 'VariableNames', {'Min Distanza di Hamming', 'Max Distanza di Hamming'});
-tabella_fading = table(min(fading), max(fading), 'VariableNames', {'Min Fading del Segnale', 'Max Fading del Segnale'});
+tabella_potenza = table(min_potenza, max_potenza, 'VariableNames', {'Min Potenza (dB)', 'Max Potenza (dB)'});
+tabella_distanza = table(distanza, 'VariableNames', {'Distanza (m)'});
 
 % Unione delle tabelle
-dati = [tabella_potenza, tabella_distanza, tabella_distanza_hamming, tabella_fading];
+dati = [tabella_potenza, tabella_distanza];
 
 % Visualizzazione della tabella
 disp('Tabella Riassuntiva dei Dati:');
 disp(dati);
-
 
 % Grafico del rapporto segnale/rumore (SNR)
 figure;
@@ -86,10 +75,24 @@ plot(1:N, SNR, 'r', 'LineWidth', 2);
 title('Rapporto Segnale/Rumore (SNR)');
 xlabel('Numero di Simulazioni');
 ylabel('SNR (scala lineare)');
-grid on;
-show;
+grid on
+shg;
 
-function segnale_autenticazione = mix_signal(dato, chiave)
+% Creazione del nome del file
+nome_file = ['risultati_simulazione_' datestr(now,'yyyymmdd_HHMMSS') '.csv'];
+
+% Scrittura delle intestazioni delle colonne nel file CSV
+intestazioni = {'Potenza (dB)', 'Distanza (m)', 'SNR', 'Num. messaggi sopra media', 'Num. messaggi sotto media'};
+writecell(intestazioni, nome_file, 'WriteMode', 'overwrite');
+
+% Creazione della matrice dei risultati
+risultati = [potenza, distanza, SNR, num_segnali_sopra_media, num_segnali_sotto_media];
+
+% Aggiunta dei risultati al file CSV
+writematrix(risultati, nome_file, 'WriteMode', 'append');
+disp(['I risultati della simulazione sono stati salvati nel file: ' nome_file]);
+
+function segnale_autenticazione = mix_signal(dato, chiave, potenza)
     % Verifica e adattamento delle lunghezze del dato casuale e della chiave di autenticazione
     if length(dato) > length(chiave)
         chiave = [chiave, zeros(1, length(dato) - length(chiave))];
@@ -108,22 +111,9 @@ function segnale_autenticazione = mix_signal(dato, chiave)
         % Applica bitxor ai numeri binari
         segnale_autenticazione(i) = bitxor(dato_bin, chiave_bin);
     end
-end
 
-
-function distanza_hamming = calculate_hamming_distance(segnale_inviato, segnale_ricevuto)
-    % Assicuriamoci che i segnali abbiano la stessa lunghezza
-    if length(segnale_inviato) ~= length(segnale_ricevuto)
-        error('I segnali devono avere la stessa lunghezza.');
-    end
-    
-    % Calcolo della distanza di Hamming
-    distanza_hamming = sum(segnale_inviato ~= segnale_ricevuto);
-end
-
-function threshold = calculate_threshold(distanza_hamming, percentuale)
-    % Calcolo della soglia come percentuale della massima distanza di Hamming possibile
-    threshold = percentuale * distanza_hamming / 100;
+    % Potenzia il segnale di autenticazione con la potenza fornita
+    segnale_autenticazione = segnale_autenticazione * 10^(potenza/20);
 end
 
 function segnale_ricevuto = receive_signal(potenza, distanza)
@@ -166,42 +156,18 @@ function segnale_ricevuto = receive_signal(potenza, distanza)
     segnale_ricevuto = segnale_rumore;
 end
 
+function errori = check_errors(segnale_ricevuto, segnale_autenticazione)
+    % Verifica e adattamento delle lunghezze dei segnali
+    min_length = min(length(segnale_ricevuto), length(segnale_autenticazione));
+    segnale_ricevuto = segnale_ricevuto(1:min_length);
+    segnale_autenticazione = segnale_autenticazione(1:min_length);
 
-function fading = calculate_fading(segnale_ricevuto)
-    % Calcola il fading del segnale ricevuto
-    
-    % Definisci il numero di campioni per la finestra temporale
-    num_campioni_finestra = 100;
-    
-    % Calcola il numero totale di finestre temporali
-    num_finestre = floor(length(segnale_ricevuto) / num_campioni_finestra);
-    
-    % Inizializza un vettore per memorizzare l'energia del segnale in ogni finestra temporale
-    energia_finestre = zeros(1, num_finestre);
-    
-    % Calcola l'energia del segnale in ogni finestra temporale
-    for i = 1:num_finestre
-        indice_inizio = (i - 1) * num_campioni_finestra + 1;
-        indice_fine = indice_inizio + num_campioni_finestra - 1;
-        finestra = segnale_ricevuto(indice_inizio:indice_fine);
-        energia_finestre(i) = sum(abs(finestra).^2);
-    end
-    
-    % Calcola il fading come la variazione percentuale dell'energia media nel tempo
-    energia_media = mean(energia_finestre);
-    fading = 10 * log10(energia_media / mean(abs(segnale_ricevuto).^2));
-end
+    % Conversione dei segnali in bit
+    segnale_ricevuto_bit = logical(segnale_ricevuto > 0);
+    segnale_autenticazione_bit = logical(segnale_autenticazione > 0);
 
-function errori = check_errors(messaggio_ricevuto, dato_casuale)
-    % Verifica e adattamento delle lunghezze dei messaggi
-    if length(messaggio_ricevuto) ~= length(dato_casuale)
-        min_length = min(length(messaggio_ricevuto), length(dato_casuale));
-        messaggio_ricevuto = messaggio_ricevuto(1:min_length);
-        dato_casuale = dato_casuale(1:min_length);
-    end
-    
-    % Calcolo degli errori contando i bit diversi tra i due messaggi
-    errori = sum(messaggio_ricevuto ~= dato_casuale);
+    % Calcolo della distanza di Hamming (numero di bit diversi)
+    errori = sum(segnale_ricevuto_bit ~= segnale_autenticazione_bit);
 end
 
 function chiave = generate_random_key(lunghezza)
