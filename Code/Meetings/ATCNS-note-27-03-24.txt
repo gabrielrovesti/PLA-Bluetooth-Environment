@@ -1,0 +1,26 @@
+- generare già la chiave in bit e non in caratteri alfanumerici 
+
+- decidere se trattare la potenza in dB o volt (milli watt): potenza ricevuta*potenza tramessa / quadrato della distanza
+=> ritrasformiamo nuovamente la potenza da mwtt a dB
+
+- (x,y,z) function distance(): calcola la distanza euclidea
+  partiamo con un solo x
+  inseriamo poi anche y e z (oppure prima solo y e z)
+  
+  distanza + lunghezza determinano quanta potenza perdo --> da li ottengo il segnale ricevuto
+
+- 2 valori di threshold: potenza del signale dato
+  - Pmax dato (qual'è la distanza max per avere bit error rate < x con x = sequenza di valori [2%, 4%, ...]) ==> Potenza del dato + potenza della chiave <= potenza max del canale Bluetooth
+  - oltre a questo abbiamo il rumore (dipendente dal canale e dalla strumentazione) che può aumentare/diminuire ulteriormente la potenza. 
+  ASSUNZIONE: abbiamo solo line-of-sight (solo dritto per dritto), l'effetto del canale è dato solo da path-loss. Definire una gamma di SNR[-20dB,+20dB] (nella strumentazione ho più rumore che segnale) --> segnale misurato = awgn(segnale e SNR) --> genera un segnale modificato rispetto a quello che vediamo, in teoria un segnale complesso e ne prendiamo la parte reale. Ogni segnale che creiamo lo plottiamo per essere certi (sample rate), decidiamo noi il bit rate o l'ampiezza del segnale (guardare bluetooth). 
+Vedo cosa awgn sul segnale ricevuto modifica --> fase o ampiezza --> facendo dei test non dovrebbe shiftare il segnale (mantiene i reali)
+
+- centrare il segnale: definire variabile "centro" (0 va bene)
+
+- DECODIFICA: plottare dato ricevuto e chiave ricevuta --> vedere quanto distano dagli originali. Possibile plot per entrambi: BER (y) e distanza (x) --> al variare della distanza studiamo il BER (hamming) --> dovremmo capire quanto è la distanza max per ottenere un BER accettabile
+
+- STUDIO THRESHOLD LEGIT: ho la chiave decodificata, in base a cosa dico che che il messaggio è legittimo? Quale soglia? Miss-detection e false alarm. 
+Vario il valore di threshold in modo da dire "con un certo valore di threshold ottengo questo..." + faccio anche per la distanza. 
+
+generare chiave non autentica + segnale con chiave falsa e ripetere il procedimento come per il false-alarm. Plotto ancora (una curva per ogni valore di threshold) --> un grafico per valore minimo, centrale e max di distanza. Ogni punto della linea (threshold,distanza) --> quel punto da un certo FA e MD. 
+

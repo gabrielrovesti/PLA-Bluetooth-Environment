@@ -1,0 +1,87 @@
+Scaletta logica algoritmo:
+
+# Segnali ad onda quadra - successivamente, diventeranno sinuisoidali con una trasformazione che faremo
+# LOS - senza interferenze
+
+- Generazione potenza di trasmissione in milliwatt (randi)
+- Generazione potenza di chiave in milliwatt (randi)
+
+for each 1 to N:
+	- dato(i) = randi(0, 1, 100) #100 bit
+	- chiave(i) = randi(0, 1, 100) #100 bit
+	# se la distanza variasse qui, sarebbe per un fattore di mobilità 
+end
+
+distanza = randi([1,150]); # valore casuale tra 1 e 150
+
+p_min_dato = min(dato)
+p_max_dato = max(dato)
+
+p_min_chiave = min(chiave)
+p_max_chiave = max(chiave)
+
+# Generazione segnale dato e segnale autenticazione da sovrapporre successivamente
+for each 1 to N:
+	- segnale_dato(i) = p_min_dato se dato(i)=0, p_max_dato se dato(i)=1
+- segnale_chiave(i) = p_min_chiave se chiave(i)=0, p_max_chiave se chiave(i)=1
+end
+
+segnale = segnale_dato + segnale_chiave  # Segnale inviato
+
+# Threshold fissate - Calcolo threshold
+# Ragionamento: Potenze trovate sono le thresholds
+
+threshold negativa chiave = potenza minima chiave
+threshold positiva chiave = potenza massima chiave
+threshold negativa dato = potenza minima dato
+threshold positiva dato = potenza massima dato
+
+# Threshold = intervallo in ampiezza per dato e chiave
+
+# Calcolo segnale al ricevitore (decodifica)
+
+for each 1 to N:
+	received_signal_data(i) = 1 se received > 0 (center), 0 if received < 0
+	# Poi diventa così con le due threshold
+	(if received > center 1 if > Th+, 0 if <Th+)
+	(if received < center 1 if > Th-, 0 if <Th-)
+end
+
+# Calcolo distanza euclidea (???)
+# x, y, z - fissiamo un parametro e poi successivamente usiamo gli altri
+
+# Calcolo SNR per trovare il segnale al ricevitore - gamma tra -20 dB e + 20 dB
+# SNR is defined as the ratio of signal power to noise power, often 
+# expressed in decibels. 
+# A ratio higher than 1:1 (greater than 0 dB) indicates more signal than noise.
+
+# Rumore = awgn
+# (1) - rumore del canale
+# (2) - rumore della strumentazione
+
+segnale misurato = awgn(segnale_SNR)
+
+# Calcolo potenze al ricevitore (per trovare se messaggi sono autentici o meno)
+potenza_ricevuta_dato = (potenza_trasmessa_dato)/(quadrato della distanza)
+potenza_ricevuta_chiave = (potenza_trasmessa_chiave)/(quadrato della distanza)
+
+potenza_dato + potenza_chiave <= potenza_max_canale_Bluetooth
+	print("Messaggio legittimo")
+potenza_dato + potenza_chiave >= potenza_min_canale_Bluetooth
+	print("Messaggio non legittimo")
+
+# BER - the number of bits received in error divided by the total number of bits transferred
+
+# BER dato
+# BER trasmissione 
+
+# Studio false alarm (solo messaggi autentici)
+# Studio missed detection (solo messaggi non autentici)
+
+
+
+
+
+
+
+
