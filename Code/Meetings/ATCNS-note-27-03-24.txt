@@ -7,7 +7,7 @@
   partiamo con un solo x
   inseriamo poi anche y e z (oppure prima solo y e z)
   
-  distanza + lunghezza determinano quanta potenza perdo --> da li ottengo il segnale ricevuto
+  distanza + lunghezza determinano quanta potenza perdo --> da lì ottengo il segnale ricevuto
 
 - 2 valori di threshold: potenza del signale dato
   - Pmax dato (qual'è la distanza max per avere bit error rate < x con x = sequenza di valori [2%, 4%, ...]) ==> Potenza del dato + potenza della chiave <= potenza max del canale Bluetooth

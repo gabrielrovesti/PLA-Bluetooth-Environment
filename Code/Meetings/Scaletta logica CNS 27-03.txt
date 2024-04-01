@@ -9,10 +9,7 @@ Scaletta logica algoritmo:
 for each 1 to N:
 	- dato(i) = randi(0, 1, 100) #100 bit
 	- chiave(i) = randi(0, 1, 100) #100 bit
-	# se la distanza variasse qui, sarebbe per un fattore di mobilità 
 end
-
-distanza = randi([1,150]); # valore casuale tra 1 e 150
 
 p_min_dato = min(dato)
 p_max_dato = max(dato)
@@ -23,12 +20,13 @@ p_max_chiave = max(chiave)
 # Generazione segnale dato e segnale autenticazione da sovrapporre successivamente
 for each 1 to N:
 	- segnale_dato(i) = p_min_dato se dato(i)=0, p_max_dato se dato(i)=1
-- segnale_chiave(i) = p_min_chiave se chiave(i)=0, p_max_chiave se chiave(i)=1
+	- segnale_chiave(i) = p_min_chiave se chiave(i)=0, p_max_chiave se chiave(i)=1
 end
 
+# Mandare il segnale ad una certa distanza trasmettitore-ricevitore
 segnale = segnale_dato + segnale_chiave  # Segnale inviato
 
-# Threshold fissate - Calcolo threshold
+# Threshold fissate - Calcolo threshold = intervallo in ampiezza per dato e chiave
 # Ragionamento: Potenze trovate sono le thresholds
 
 threshold negativa chiave = potenza minima chiave
@@ -36,30 +34,97 @@ threshold positiva chiave = potenza massima chiave
 threshold negativa dato = potenza minima dato
 threshold positiva dato = potenza massima dato
 
-# Threshold = intervallo in ampiezza per dato e chiave
+# Mandare il segnale ad una certa distanza trasmettitore-ricevitore
+distanza = randi([1,150]); # valore casuale tra 1 e 150
+received = simulazione_canale(segnale, distanza)
+
+# Ricevo un segnale con il casino di Bluetooth e rumore intrinseco dato dalla distanza
+# Possono esserci più tipi di rumore: canale e strumentazione
+
+function received = simulazione_canale(segnale_trasmesso, distanza)
+    % Parametri del canale
+    fc = 2.4e9; % Frequenza del canale (2.4 GHz per Bluetooth)
+    c = 3e8; % Velocità della luce
+    lambda = c / fc; % Lunghezza d'onda
+    
+    % Attenuazione del segnale (path loss)
+    path_loss = (4 * pi * distanza) / lambda;
+	% https://en.wikipedia.org/wiki/Free-space_path_loss
+    segnale_attenuato = segnale_trasmesso / path_loss;
+    
+    % Fading (modello semplificato)
+	% https://it.mathworks.com/help/comm/ug/rayleigh-fading-channel.html
+    fading_factor = abs(randn(size(segnale_attenuato)));
+    segnale_fading = segnale_attenuato .* fading_factor;
+    
+    % Rumore termico (AWGN)
+    SNR_dB = 20; % Rapporto segnale/rumore desiderato (in dB)
+    segnale_ricevuto = awgn(segnale_fading, SNR_dB, 'measured');
+end
+
 
 # Calcolo segnale al ricevitore (decodifica)
+# Threshold iniziali e verifichiamo quanto il segnale con rumori disti 
+# prima di capire il rumore stesso
 
 for each 1 to N:
-	received_signal_data(i) = 1 se received > 0 (center), 0 if received < 0
+	received_signal(i) = 1 se received > 0 (center), 0 if received < 0
+	
 	# Poi diventa così con le due threshold
 	(if received > center 1 if > Th+, 0 if <Th+)
 	(if received < center 1 if > Th-, 0 if <Th-)
 end
 
-# Calcolo distanza euclidea (???)
+# Calcolo distanza euclidea 
 # x, y, z - fissiamo un parametro e poi successivamente usiamo gli altri
 
-# Calcolo SNR per trovare il segnale al ricevitore - gamma tra -20 dB e + 20 dB
-# SNR is defined as the ratio of signal power to noise power, often 
-# expressed in decibels. 
-# A ratio higher than 1:1 (greater than 0 dB) indicates more signal than noise.
+segnale_xyz = sqrt(segnale_dato.^2 + segnale_chiave.^2);
 
-# Rumore = awgn
-# (1) - rumore del canale
-# (2) - rumore della strumentazione
+# Serve a calcolare quanto il segnale perda in potenza rispetto ad una due/tre dimensioni
+# in base alla distanza + lunghezza (fading)
+# Da questo ci troviamo il segnale integro rispetto al segnale ricevuto 
+# = (distanza tra traiettoria prevista e punti iniziali)
 
-segnale misurato = awgn(segnale_SNR)
+# Assicurarsi che i due segnali ricevuti abbiano la stessa lunghezza o che siano allineati 
+# temporalmente, in modo che ogni campione del primo segnale corrisponda temporalmente a un
+# campione del secondo segnale
+
+# Rumore additivo in un intervallo = filtrare gli altri tipi di rumore che influiscono naturalmente 
+
+segnale_misurato = awgn(segnale_xyz, [-20,20])
+
+# Distanza di Hamming tra segnale ricostruito con distanza euclidea (= segnale originale 
+# senza aggiunta di rumore perché ricostruito)
+# e confrontarlo con il segnale misurato con awgn (che conta già il rumore) 
+
+# Qui potrebbe avere senso calcolare Errore quadratico medio (RMSE, Root Mean Square Error)
+# la deviazione standard dei valori residui (qualora sia su più dimensioni
+
+noise_signal = segnale_xyz - segnale_misurato
+
+# Qui otteniamo il rumore di sottofondo 
+# The noise is then estimated by subtracting the signal estimate from the noisy measurement # The ratio of the power of the two estimates yields an estimate of the SNR.
+# https://it.mathworks.com/matlabcentral/answers/58593-how-can-i-calculate-the-signal-to-noise-ratio-of-a-signal-without-knowing-signal-or-noise-power
+
+
+# calcolo numero bit errati con distanza di Hamming
+# n. bit diversi tra segnale mixato e segnale ricostruito
+num_bit_errati = 0
+for i = 1:N
+    if segnale_xyz(i) != segnale(i)
+        num_bit_errati = num_bit_errors + 1
+    end
+end
+
+# BER - the number of bits received in error divided by the total number of bits transferred
+# Calcolo BER per ogni distanza
+
+
+# Confrontiamo BER vero per definire valore accettabile in termini di bit persi
+# confrontando il BER calcolato usando una soglia massima accettata per quella distanza
+# (es. per 5 metri - BER 0.02, per 10 metri - BER 0.04)
+# La soglia massima accettata è un vettore "x" in cui ogni cella ha la differenza
+# accettata per una certa distanza
 
 # Calcolo potenze al ricevitore (per trovare se messaggi sono autentici o meno)
 potenza_ricevuta_dato = (potenza_trasmessa_dato)/(quadrato della distanza)
@@ -70,10 +135,6 @@ potenza_dato + potenza_chiave <= potenza_max_canale_Bluetooth
 potenza_dato + potenza_chiave >= potenza_min_canale_Bluetooth
 	print("Messaggio non legittimo")
 
-# BER - the number of bits received in error divided by the total number of bits transferred
-
-# BER dato
-# BER trasmissione 
 
 # Studio false alarm (solo messaggi autentici)
 # Studio missed detection (solo messaggi non autentici)
