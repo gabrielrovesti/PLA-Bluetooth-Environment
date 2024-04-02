@@ -1,0 +1,8 @@
+Giusto per avere certezza, ricordo che avevamo definito i seguenti macro-punti:
+
+1. Variare la distanza tra i dispositivi. Per ogni valore della distanza, vedere come il valore di threshold per la decodifica incide sulla corretta ricostruzione del messaggio. 
+Quindi, partire con una threshold che corrisponde al livello di potenza del segnale messaggio. Successivamente, potete anche provare un paio di valori diversi della threshold e vedere cosa succede (pensateci voi a quali possono essere dei valori ;) 
+
+2. Dopo aver determinato il miglior valore di threshold per la decodifica del messaggio, provare una serie di valori di threshold per l'authentication (= possibili distanze di Hamming entro le quali il messaggio è accettato). In questo modo trovare l'andamento False Alarm e Miss Detection.
+
+Chiaramente, per ottenere una statistica, dovete effettuare N simulazioni per ogni scenario considerato. 
