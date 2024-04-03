@@ -3,8 +3,10 @@ Scaletta logica algoritmo:
 # Segnali ad onda quadra - successivamente, diventeranno sinuisoidali con una trasformazione che faremo
 # LOS - senza interferenze
 
-- Generazione potenza di trasmissione in milliwatt (randi)
-- Generazione potenza di chiave in milliwatt (randi)
+# Generazione potenza di trasmissione in milliwatt (randi)
+# Generazione potenza di chiave in milliwatt (randi)
+
+# Stesso dato e chiave (casuali) per tutte le distanze
 
 for each 1 to N:
 	- dato(i) = randi(0, 1, 100) #100 bit
@@ -29,14 +31,108 @@ segnale = segnale_dato + segnale_chiave  # Segnale inviato
 # Threshold fissate - Calcolo threshold = intervallo in ampiezza per dato e chiave
 # Ragionamento: Potenze trovate sono le thresholds
 
-threshold negativa chiave = potenza minima chiave
-threshold positiva chiave = potenza massima chiave
-threshold negativa dato = potenza minima dato
-threshold positiva dato = potenza massima dato
+Th_key- = p_min_chiave
+Th_key+ = p_max_chiave
+Th_mex- = p_min_dato
+Th_mex+ = p_max_dato
 
-# Mandare il segnale ad una certa distanza trasmettitore-ricevitore
+# Mandare il segnale a certe distanze trasmettitore-ricevitore
+
+# Ricostruire il segnale al ricevitore
+# https://en.wikipedia.org/wiki/Euclidean_distance
+# (Higher dimensions section)
+
+segnale_ricostruito = sqrt(segnale_dato.^2 + segnale_chiave.^2);
+
+# Serve a calcolare quanto il segnale perda in potenza rispetto alla distanza + lunghezza (fading)
+# Da questo ci troviamo il segnale integro rispetto al segnale ricostruito che il ricevitore ha 
+# = (distanza tra traiettoria prevista e punti iniziali)
+
+# Rumore additivo in un intervallo = filtrare gli altri tipi di rumore che influiscono naturalmente 
+
+segnale_misurato = awgn(segnale_ricostruito, [-20,20])
+
+# Distanza di Hamming tra segnale ricostruito con distanza euclidea (= segnale originale 
+# senza aggiunta di rumore perché ricostruito)
+# e confrontarlo con il segnale misurato con awgn (che conta già il rumore) 
+# Questo permette di che i due segnali ricevuti abbiano la 
+# stessa lunghezza o che siano allineati 
+
+# Qui potrebbe avere senso calcolare Errore quadratico medio (RMSE, Root Mean Square Error)
+# la deviazione standard dei valori residui (qualora sia su più dimensioni)
+
+noise_signal = segnale_ricostruito - segnale_misurato
+
+# Qui otteniamo il rumore di sottofondo 
+# The noise is then estimated by subtracting the signal estimate from the noisy measurement
+# https://it.mathworks.com/matlabcentral/answers/58593-how-can-i-calculate-the-signal-to-noise-ratio-of-a-signal-without-knowing-signal-or-noise-power
+
+# Valore iniziale casuale
+
+distanza = []
+received = []
 distanza = randi([1,150]); # valore casuale tra 1 e 150
-received = simulazione_canale(segnale, distanza)
+decoded_message = []
+decoded_key = []
+num_bit_errati = 0
+
+# Calcolo segnale al ricevitore (decodifica)
+# Threshold iniziali e verifichiamo quanto il segnale con rumori disti 
+
+for i=1 to n:
+    if(i == 0)  
+        distanza(i) = 5;
+    else
+        distanza(i) = distanza(i-1) + 5; # aumento in senso crescente (utile per plot)
+        
+    # Effetto canale su segnale ricevuto
+    received = simulazione_canale(segnale, distanza(i))
+
+    # Bit per bit sul segnale ricevuto con disturbo
+    for j=1 to n:
+        # Decodifica effettiva messaggio
+        decoded_message(j) = 1 se received(j) > 0 (center), 0 if received < 0
+    
+        # Poi diventa così con le due threshold (fare gli if qui)
+        (if received > center 1 if > Th_mex+, 0 if <Th_mex+)
+        (if received < center 1 if > Th_mex-, 0 if <Th_mex-)
+
+        # Decodifica effettiva chiave
+        decoded_key(j) = 1 se received(j) > 0 (center), 0 if received < 0
+    
+        # Poi diventa così con le due threshold (fare gli if qui)
+        (if received > center 1 if > Th_key+, 0 if <Th_key+)
+        (if received < center 1 if > Th_key-, 0 if <Th_key-)
+
+        # Calcolo numero bit errati con distanza di Hamming
+        # n. bit diversi tra segnale mixato e segnale ricostruito
+
+        for k = 1 to n:
+            if segnale_ricostruito(i) != segnale(i)
+                num_bit_errati = num_bit_errati + 1
+            end
+        end
+
+        # BER - the number of bits received in error divided by the total number of bits transferred
+        # BER is obtained by comparing the transmitted and recovered data bit
+        # https://it.mathworks.com/help/bluetooth/ug/end-to-end-bluetooth-le-phy-simulation-using-path-loss-model-rf-impairments-and-awgn
+
+        BER_message(i) = num_bit_errati / length(decoded_message)
+        BER_key(i) = num_bit_errati / length(decoded_key)
+end
+
+# Plot in ascissa distanza, in ordinata BER
+# per segnale dato (1) e segnale chiave (2)
+
+# Usiamo decoded_key e decoded_message (dato + chiave nelle soglie)
+
+# Studio false alarm (solo messaggi autentici)
+# Studio missed detection (solo messaggi non autentici)
+
+
+
+# Plot unico false alarm e missed detection
+
 
 # Ricevo un segnale con il casino di Bluetooth e rumore intrinseco dato dalla distanza
 # Possono esserci più tipi di rumore: canale e strumentazione
@@ -61,88 +157,3 @@ function received = simulazione_canale(segnale_trasmesso, distanza)
     SNR_dB = 20; % Rapporto segnale/rumore desiderato (in dB)
     segnale_ricevuto = awgn(segnale_fading, SNR_dB, 'measured');
 end
-
-
-# Calcolo segnale al ricevitore (decodifica)
-# Threshold iniziali e verifichiamo quanto il segnale con rumori disti 
-# prima di capire il rumore stesso
-
-for each 1 to N:
-	received_signal(i) = 1 se received > 0 (center), 0 if received < 0
-	
-	# Poi diventa così con le due threshold
-	(if received > center 1 if > Th+, 0 if <Th+)
-	(if received < center 1 if > Th-, 0 if <Th-)
-end
-
-# Calcolo distanza euclidea 
-# x, y, z - fissiamo un parametro e poi successivamente usiamo gli altri
-
-segnale_xyz = sqrt(segnale_dato.^2 + segnale_chiave.^2);
-
-# Serve a calcolare quanto il segnale perda in potenza rispetto ad una due/tre dimensioni
-# in base alla distanza + lunghezza (fading)
-# Da questo ci troviamo il segnale integro rispetto al segnale ricevuto 
-# = (distanza tra traiettoria prevista e punti iniziali)
-
-# Assicurarsi che i due segnali ricevuti abbiano la stessa lunghezza o che siano allineati 
-# temporalmente, in modo che ogni campione del primo segnale corrisponda temporalmente a un
-# campione del secondo segnale
-
-# Rumore additivo in un intervallo = filtrare gli altri tipi di rumore che influiscono naturalmente 
-
-segnale_misurato = awgn(segnale_xyz, [-20,20])
-
-# Distanza di Hamming tra segnale ricostruito con distanza euclidea (= segnale originale 
-# senza aggiunta di rumore perché ricostruito)
-# e confrontarlo con il segnale misurato con awgn (che conta già il rumore) 
-
-# Qui potrebbe avere senso calcolare Errore quadratico medio (RMSE, Root Mean Square Error)
-# la deviazione standard dei valori residui (qualora sia su più dimensioni
-
-noise_signal = segnale_xyz - segnale_misurato
-
-# Qui otteniamo il rumore di sottofondo 
-# The noise is then estimated by subtracting the signal estimate from the noisy measurement # The ratio of the power of the two estimates yields an estimate of the SNR.
-# https://it.mathworks.com/matlabcentral/answers/58593-how-can-i-calculate-the-signal-to-noise-ratio-of-a-signal-without-knowing-signal-or-noise-power
-
-
-# calcolo numero bit errati con distanza di Hamming
-# n. bit diversi tra segnale mixato e segnale ricostruito
-num_bit_errati = 0
-for i = 1:N
-    if segnale_xyz(i) != segnale(i)
-        num_bit_errati = num_bit_errors + 1
-    end
-end
-
-# BER - the number of bits received in error divided by the total number of bits transferred
-# Calcolo BER per ogni distanza
-
-
-# Confrontiamo BER vero per definire valore accettabile in termini di bit persi
-# confrontando il BER calcolato usando una soglia massima accettata per quella distanza
-# (es. per 5 metri - BER 0.02, per 10 metri - BER 0.04)
-# La soglia massima accettata è un vettore "x" in cui ogni cella ha la differenza
-# accettata per una certa distanza
-
-# Calcolo potenze al ricevitore (per trovare se messaggi sono autentici o meno)
-potenza_ricevuta_dato = (potenza_trasmessa_dato)/(quadrato della distanza)
-potenza_ricevuta_chiave = (potenza_trasmessa_chiave)/(quadrato della distanza)
-
-potenza_dato + potenza_chiave <= potenza_max_canale_Bluetooth
-	print("Messaggio legittimo")
-potenza_dato + potenza_chiave >= potenza_min_canale_Bluetooth
-	print("Messaggio non legittimo")
-
-
-# Studio false alarm (solo messaggi autentici)
-# Studio missed detection (solo messaggi non autentici)
-
-
-
-
-
-
-
-
