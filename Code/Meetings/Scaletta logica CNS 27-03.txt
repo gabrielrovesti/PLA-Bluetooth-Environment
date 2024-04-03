@@ -3,19 +3,18 @@ Scaletta logica algoritmo:
 # Segnali ad onda quadra - successivamente, diventeranno sinuisoidali con una trasformazione che faremo
 # LOS - senza interferenze
 
-# Generazione potenza di trasmissione in milliwatt (randi)
-# Generazione potenza di chiave in milliwatt (randi)
-
-# Stesso dato e chiave (casuali) per tutte le distanze
+# Generazione potenza di trasmissione in milliwatt (randi) per tutte le distanze
+# Generazione potenza di chiave in milliwatt (randi) per tutte le distanze
 
 for each 1 to N:
 	- dato(i) = randi(0, 1, 100) #100 bit
 	- chiave(i) = randi(0, 1, 100) #100 bit
 end
 
+# Invio del segnale con certa potenza
+
 p_min_dato = min(dato)
 p_max_dato = max(dato)
-
 p_min_chiave = min(chiave)
 p_max_chiave = max(chiave)
 
