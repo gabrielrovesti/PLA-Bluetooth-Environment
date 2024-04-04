@@ -6,26 +6,19 @@ Scaletta logica algoritmo:
 # Generazione potenza di trasmissione in milliwatt (randi) per tutte le distanze
 # Generazione potenza di chiave in milliwatt (randi) per tutte le distanze
 
-for each 1 to N:
-	- dato(i) = randi(0, 1, 100) #100 bit
-	- chiave(i) = randi(0, 1, 100) #100 bit
-end
+- dato = randi(0, 1, 100) #100 bit
+- chiave = randi(0, 1, 100) #100 bit
 
 # Invio del segnale con certa potenza
+
+segnale_inviato = mix_signal(dato, chiave, potenza_dato, potenza_chiave);
+
+# Calcolo potenze per threshold (trasformazione sinusoidale)
 
 p_min_dato = min(dato)
 p_max_dato = max(dato)
 p_min_chiave = min(chiave)
 p_max_chiave = max(chiave)
-
-# Generazione segnale dato e segnale autenticazione da sovrapporre successivamente
-for each 1 to N:
-	- segnale_dato(i) = p_min_dato se dato(i)=0, p_max_dato se dato(i)=1
-	- segnale_chiave(i) = p_min_chiave se chiave(i)=0, p_max_chiave se chiave(i)=1
-end
-
-# Mandare il segnale ad una certa distanza trasmettitore-ricevitore
-segnale = segnale_dato + segnale_chiave  # Segnale inviato
 
 # Threshold fissate - Calcolo threshold = intervallo in ampiezza per dato e chiave
 # Ragionamento: Potenze trovate sono le thresholds
@@ -34,37 +27,6 @@ Th_key- = p_min_chiave
 Th_key+ = p_max_chiave
 Th_mex- = p_min_dato
 Th_mex+ = p_max_dato
-
-# Mandare il segnale a certe distanze trasmettitore-ricevitore
-
-# Ricostruire il segnale al ricevitore
-# https://en.wikipedia.org/wiki/Euclidean_distance
-# (Higher dimensions section)
-
-segnale_ricostruito = sqrt(segnale_dato.^2 + segnale_chiave.^2);
-
-# Serve a calcolare quanto il segnale perda in potenza rispetto alla distanza + lunghezza (fading)
-# Da questo ci troviamo il segnale integro rispetto al segnale ricostruito che il ricevitore ha 
-# = (distanza tra traiettoria prevista e punti iniziali)
-
-# Rumore additivo in un intervallo = filtrare gli altri tipi di rumore che influiscono naturalmente 
-
-segnale_misurato = awgn(segnale_ricostruito, [-20,20])
-
-# Distanza di Hamming tra segnale ricostruito con distanza euclidea (= segnale originale 
-# senza aggiunta di rumore perché ricostruito)
-# e confrontarlo con il segnale misurato con awgn (che conta già il rumore) 
-# Questo permette di che i due segnali ricevuti abbiano la 
-# stessa lunghezza o che siano allineati 
-
-# Qui potrebbe avere senso calcolare Errore quadratico medio (RMSE, Root Mean Square Error)
-# la deviazione standard dei valori residui (qualora sia su più dimensioni)
-
-noise_signal = segnale_ricostruito - segnale_misurato
-
-# Qui otteniamo il rumore di sottofondo 
-# The noise is then estimated by subtracting the signal estimate from the noisy measurement
-# https://it.mathworks.com/matlabcentral/answers/58593-how-can-i-calculate-the-signal-to-noise-ratio-of-a-signal-without-knowing-signal-or-noise-power
 
 # Valore iniziale casuale
 
@@ -75,7 +37,7 @@ decoded_message = []
 decoded_key = []
 num_bit_errati = 0
 
-# Calcolo segnale al ricevitore (decodifica)
+# Mandare il segnale e ricalcolo segnale al ricevitore (decodifica)
 # Threshold iniziali e verifichiamo quanto il segnale con rumori disti 
 
 for i=1 to n:
@@ -98,17 +60,23 @@ for i=1 to n:
 
         # Decodifica effettiva chiave
         decoded_key(j) = 1 se received(j) > 0 (center), 0 if received < 0
-    
+
         # Poi diventa così con le due threshold (fare gli if qui)
         (if received > center 1 if > Th_key+, 0 if <Th_key+)
         (if received < center 1 if > Th_key-, 0 if <Th_key-)
 
-        # Calcolo numero bit errati con distanza di Hamming
+        # Ricostruzione dei segnali messaggio e chiave
+        
+
+        # Calcolo numero bit errati con distanza di Hamming su dato e chiave
         # n. bit diversi tra segnale mixato e segnale ricostruito
 
         for k = 1 to n:
-            if segnale_ricostruito(i) != segnale(i)
-                num_bit_errati = num_bit_errati + 1
+            if decoded_key(i) != chiave(i)
+                num_bit_errati_key = num_bit_errati + 1
+            end
+            if decoded_message(i) != messaggio(i)
+                num_bit_errati_mex = num_bit_errati + 1
             end
         end
 
@@ -116,8 +84,8 @@ for i=1 to n:
         # BER is obtained by comparing the transmitted and recovered data bit
         # https://it.mathworks.com/help/bluetooth/ug/end-to-end-bluetooth-le-phy-simulation-using-path-loss-model-rf-impairments-and-awgn
 
-        BER_message(i) = num_bit_errati / length(decoded_message)
-        BER_key(i) = num_bit_errati / length(decoded_key)
+        BER_message(i) = num_bit_errati_key / length(decoded_message)
+        BER_key(i) = num_bit_errati_mex / length(decoded_key)
 end
 
 # Plot in ascissa distanza, in ordinata BER
@@ -131,6 +99,35 @@ end
 
 
 # Plot unico false alarm e missed detection
+
+
+function segnale_inviato = mix_signal(dato, chiave, potenza_dato, potenza_chiave)
+    % Verifica e adattamento delle lunghezze del dato casuale e della chiave di autenticazione
+    if length(dato) > length(chiave)
+        chiave = [chiave, zeros(1, length(dato) - length(chiave))];
+    elseif length(dato) < length(chiave)
+        chiave = chiave(1:length(dato));
+    end
+    
+    % Inizializzazione del segnale mixato
+    segnale_inviato = zeros(1, length(dato));
+    
+    % Mixaggio del dato con la chiave utilizzando l'operatore XOR
+    for i = 1:length(dato)
+        segnale_inviato(i) = bitxor(dato(i), chiave(i));
+    end
+
+    % Potenzia il segnale di dato con la potenza fornita - conversione in
+    % dB
+    segnale_inviato = segnale_inviato .* 10.^(potenza_dato/20);
+
+    % Potenzia il segnale di chiave con la potenza fornita - conversion in
+    % dB
+    chiave_potenziata = chiave .* 10.^(potenza_chiave/20);
+
+    % Mixaggio dei segnali di dato e chiave
+    segnale_inviato = segnale_inviato + chiave_potenziata;
+end
 
 
 # Ricevo un segnale con il casino di Bluetooth e rumore intrinseco dato dalla distanza
