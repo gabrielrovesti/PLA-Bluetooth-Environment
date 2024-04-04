@@ -91,11 +91,11 @@ end
 # Plot in ascissa distanza, in ordinata BER
 # per segnale dato (1) e segnale chiave (2)
 
-# Usiamo decoded_key e decoded_message (dato + chiave nelle soglie)
-
 # Studio false alarm (solo messaggi autentici)
 # Studio missed detection (solo messaggi non autentici)
 
+# (1) Capire come i messaggi possono essere o non essere autentici
+# (2) Come utilizzare le BER
 
 
 # Plot unico false alarm e missed detection
