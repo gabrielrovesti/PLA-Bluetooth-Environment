@@ -1,3 +1,6 @@
+clc;
+clear all; close all;
+
 % Parametri di trasmissione
 N = 100; % Numero di trasmissioni da simulare
 
@@ -9,7 +12,7 @@ potenza_chiave = randi([-15, 15], 1, N); % Potenza di chiave
 dato = randi([0, 1], 1, 100); 
 chiave = randi([0, 1], 1, 100); 
 
-% Invio del segnale con certa potenza
+% Invio del segnale con certa potenza con chiave pubblica (ricevente)
 segnale_inviato = mix_signal(dato, chiave, potenza_dato, potenza_chiave);
 
 % Calcolo delle threshold per decodifica
@@ -18,9 +21,10 @@ p_max_dato = max(potenza_dato);
 p_min_chiave = min(potenza_chiave);
 p_max_chiave = max(potenza_chiave);
 
-
 distanza = [];
 received = [];
+demixed_signal = [];
+filtered_signal = [];
 decoded_message = [];
 decoded_key = [];
 num_bit_errati = 0;
@@ -40,38 +44,47 @@ for i = 1:30  % Poiché 150/5 = 30
     % Effetto canale su segnale ricevuto (disturbato)
     received = simulazione_canale(segnale_inviato, distanza(i));
 
-    % Inizializza variabili per il calcolo degli errori
     num_bit_errati_key = 0;
     num_bit_errati_mex = 0;
 
+    % Filtro del rumore e normalizzazione per togliere rumore condiviso
+    % e prendere il segnale integro (bassa frequenza)
+    % rispetto a rumore e interferenza (alta frequenza)
+
+    filter_order = 10; % Come separiamo le frequenze
+    cutoff_frequency = 0.3; % Normalizzazione = tagliare il segnale da una certa soglia
+    low_pass_filter = fir1(filter_order, cutoff_frequency); % Taglio del segnale finito (FIR) per filtrarlo su coefficienti
+
+    filtered_signal = filter(low_pass_filter, 1, received);
+
     % Decodifica bit per bit del segnale ricevuto con disturbo
-    for j = 1:length(received)
-        % Decodifica effettiva messaggio
-        % Applicazione delle threshold per il messaggio
-        if received(j) > 0
-            if received(j) > p_max_dato
+    for j = 1:length(filtered_signal)
+        % Decodifica (cosa fare)
+
+        % Decode the message
+        if filtered_signal(j) > 0
+            if filtered_signal > p_max_dato
                 decoded_message(j) = 1;
             else
                 decoded_message(j) = 0;
             end
         else
-            if received(j) < p_min_dato
+            if filtered_signal(j) < p_min_dato
                 decoded_message(j) = 0;
             else
                 decoded_message(j) = 1;
             end
         end
 
-        % Decodifica effettiva chiave
-        % Applicazione delle threshold per la chiave
-        if received(j) > 0
-            if received(j) > p_max_chiave
+        % Decode the key
+        if filtered_signal(j) > 0
+            if filtered_signal(j) > p_max_chiave
                 decoded_key(j) = 1;
             else
                 decoded_key(j) = 0;
             end
         else
-            if received(j) < p_min_chiave
+            if filtered_signal(j) < p_min_chiave
                 decoded_key(j) = 0;
             else
                 decoded_key(j) = 1;
@@ -89,8 +102,8 @@ for i = 1:30  % Poiché 150/5 = 30
     end
 
     % Calcolo del BER per messaggio e chiave
-    BER_message(i) = num_bit_errati_key / length(decoded_message);
-    BER_key(i) = num_bit_errati_mex / length(decoded_key);
+    BER_message(i) = num_bit_errati_mex / length(decoded_message);
+    BER_key(i) = num_bit_errati_key / length(decoded_key);
 end
 
 % Messaggi autentici/non autentici/threshold
@@ -105,43 +118,6 @@ for i = 1:30  % Poiché 150/5 = 30
         distanza(i) = distanza(i-1) + 5;
     end
 end
-
-% Definizione delle soglie accettabili per le BER
-x = linspace(min([media_BER_message, media_BER_key]), max([media_BER_message, media_BER_key]), length(BER_message)); % Interpolazione lineare per ottenere una soglia per ogni BER
-
-% Calcolo della media delle BER per condizionare i falsi allarmi e le mancate rilevazioni
-media_BER_message = mean(BER_message);
-media_BER_key = mean(BER_key);
-
-% Verifica se i messaggi sono autentici o no utilizzando le soglie
-messaggi_autentici = false(size(BER_message)); 
-
-for i = 1:length(BER_message) % Itera attraverso ogni distanza
-    % Verifica se la BER è inferiore alla soglia accettabile
-    if BER_message(i) <= x(i) && BER_key(i) <= x(i)
-        messaggi_autentici(i) = true; % Segnale autentico
-    else
-        messaggi_autentici(i) = false; % Segnale non autentico
-    end
-end
-
-% Visualizzazione dei risultati
-disp('Stato di autenticità dei messaggi:');
-disp(messaggi_autentici);
-
-% Calcolo del tasso di false alarm per i messaggi autentici
-false_alarm_rate = sum(BER_message > x(1)) / length(distanza);
-
-% Calcolo del tasso di missed detection per i messaggi non autentici
-missed_detection_rate = sum(BER_key <= x(1)) / length(distanza);
-
-% Plot dei risultati
-figure;
-plot(missed_detection_rate, false_alarm_rate, 'ro', 'MarkerSize', 10);
-title('Missed Detection vs False Alarm');
-xlabel('Missed Detection Rate');
-ylabel('False Alarm Rate');
-grid on;
 
 % Creazione del vettore per l'asse temporale
 tempo = 1:length(segnale_inviato);
@@ -165,18 +141,18 @@ xlabel('Tempo');
 ylabel('Ampiezza');
 grid on;
 
-% Plot del BER per segnale dato
+% Plot del segnale filtrato
 subplot(2, 2, 3);
-plot(distanza, BER_message, '-o', 'LineWidth', 2);
-title('Bit Error Rate (BER) per segnale dato');
-xlabel('Distanza (m)');
-ylabel('BER');
+plot(tempo, filtered_signal, 'LineWidth', 2);
+title('Segnale Filtrato');
+xlabel('Tempo');
+ylabel('Ampiezza');
 grid on;
 
-% Plot del BER per segnale chiave
+% Plot del BER per segnale dato
 subplot(2, 2, 4);
-plot(distanza, BER_key, '-o', 'LineWidth', 2);
-title('Bit Error Rate (BER) per segnale chiave');
+plot(distanza, BER_message, '-o', 'LineWidth', 2);
+title('Bit Error Rate (BER) per segnale dato');
 xlabel('Distanza (m)');
 ylabel('BER');
 grid on;
@@ -229,4 +205,3 @@ function received = simulazione_canale(segnale_trasmesso, distanza)
     SNR_dB = 20; % Rapporto segnale/rumore desiderato (in dB)
     received = awgn(segnale_fading, SNR_dB, 'measured');
 end
-
