@@ -12,8 +12,11 @@ potenza_dato = randi([-20, 20], 1, N); % Potenza di trasmissione
 potenza_chiave = randi([-15, 15], 1, N); % Potenza di chiave
 
 % Generazione dati e chiavi casuali per tutte le trasmissioni a 100 bit
-dato = randi([0, 1], 1, 100); 
-chiave = randi([0, 1], 1, 100); 
+dato = randi([0,1], 1, 100); 
+chiave = randi([0,1], 1, 100); 
+% dato = randi([0,1], 100); % Segnale diverso per 100 distanze
+% chiave = randi([0,1], 100); % Segnale diverso per 100 distanze
+
 
 % Criptare il messaggio dato utilizzando la chiave pubblica
 dato_crittato = rsa_obj.encrypt(dato);
@@ -63,34 +66,37 @@ for i = 1:30  % Poiché 150/5 = 30
 
     filtered_signal = filter(low_pass_filter, 1, received);
 
+    % Soglie dinamiche su segnale ricevuto (filtrato)
+    p_min_fs = min(filtered_signal);
+    p_max_fs = max(filtered_signal);
+
     % Decodifica bit per bit del segnale ricevuto con disturbo
     for j = 1:length(filtered_signal)
-        % Decodifica (cosa fare)
 
-        % Decode the message
+        % Decode the message for BER
         if filtered_signal(j) > 0
-            if filtered_signal > p_max_dato
+            if filtered_signal > p_max_fs
                 decoded_message(j) = 1;
             else
                 decoded_message(j) = 0;
             end
         else
-            if filtered_signal(j) < p_min_dato
+            if filtered_signal(j) < p_min_fs
                 decoded_message(j) = 0;
             else
                 decoded_message(j) = 1;
             end
         end
 
-        % Decode the key
+        % Decode the key for BER
         if filtered_signal(j) > 0
-            if filtered_signal(j) > p_max_chiave
+            if filtered_signal(j) > p_max_fs
                 decoded_key(j) = 1;
             else
                 decoded_key(j) = 0;
             end
         else
-            if filtered_signal(j) < p_min_chiave
+            if filtered_signal(j) < p_min_fs
                 decoded_key(j) = 0;
             else
                 decoded_key(j) = 1;
@@ -110,23 +116,21 @@ for i = 1:30  % Poiché 150/5 = 30
     % Calcolo del BER per messaggio e chiave
     BER_message(i) = num_bit_errati_mex / length(decoded_message);
     BER_key(i) = num_bit_errati_key / length(decoded_key);
+
+    %% Decodifica di filtered
+    % Ottieni decoded_filtered_message
 end
 
 % Decrittare il messaggio utilizzando la chiave privata
-messaggio_decripted = rsa_obj.decrypt(decoded_message);
+% messaggio_decripted = rsa_obj.decrypt(decoded_filtered_message);
 
-% Messaggi autentici/non autentici/threshold
+% Messaggi autentici/non autentici
+%% Uso RSA per capire come fare
 
-distanza = [];
-for i = 1:30  % Poiché 150/5 = 30
-    
-    % Calcola la nuova distanza
-    if i == 1
-        distanza(i) = 5;
-    else
-        distanza(i) = distanza(i-1) + 5;
-    end
-end
+% https://security.stackexchange.com/questions/192156/how-to-authenticate-using-rsa-avoiding-mitm-attacks
+
+
+%% Missed detection/false alarm
 
 % Creazione del vettore per l'asse temporale
 tempo = 1:length(segnale_inviato);
@@ -167,10 +171,6 @@ ylabel('BER');
 grid on;
 
 function segnale_inviato = mix_signal(dato_crittato, chiave, potenza_dato, potenza_chiave)
-    % Convert symbolic variables to numeric values
-    dato_crittato = double(dato_crittato);
-    chiave = double(chiave);
-
     % Verifica e adattamento delle lunghezze del dato casuale e della chiave di autenticazione
     if length(dato_crittato) > length(chiave)
         chiave = [chiave, zeros(1, length(dato_crittato) - length(chiave))];
@@ -181,11 +181,11 @@ function segnale_inviato = mix_signal(dato_crittato, chiave, potenza_dato, poten
     % Inizializzazione del segnale mixato
     segnale_inviato = zeros(1, length(dato_crittato));
     
-    % Mixaggio del dato con la chiave utilizzando l'operatore XOR
-    for i = 1:length(dato_crittato)
-        segnale_inviato(i) = bitxor(dato_crittato(i), chiave(i));
-    end
-
+    % Mixaggio del dato con la chiave utilizzando un operatore appropriato
+    % (ad esempio, la moltiplicazione o la somma)
+    % Manteniamo i segnali nel dominio reale
+    segnale_inviato = dato_crittato .* chiave; % Puoi anche utilizzare l'operatore di somma
+    
     % Potenzia il segnale di dato con la potenza fornita - conversione in
     % dB
     segnale_inviato = segnale_inviato .* 10.^(potenza_dato/20);
@@ -198,6 +198,7 @@ function segnale_inviato = mix_signal(dato_crittato, chiave, potenza_dato, poten
     segnale_inviato = segnale_inviato + chiave_potenziata;
 end
 
+
 function received = simulazione_canale(segnale_trasmesso, distanza)
     % Parametri del canale
     fc = 2.4e9; % Frequenza del canale (2.4 GHz per Bluetooth)
@@ -206,13 +207,14 @@ function received = simulazione_canale(segnale_trasmesso, distanza)
     
     % Attenuazione del segnale (path loss)
     path_loss = (4 * pi * distanza) / lambda;
-	% https://en.wikipedia.org/wiki/Free-space_path_loss
-    segnale_attenuato = segnale_trasmesso / path_loss;
+    segnale_attenuato = segnale_trasmesso ./ path_loss; % Utilizzo dell'operatore di divisione
     
     % Fading (modello semplificato)
-	% https://it.mathworks.com/help/comm/ug/rayleigh-fading-channel.html
     fading_factor = abs(randn(size(segnale_attenuato)));
     segnale_fading = segnale_attenuato .* fading_factor;
+    
+    % Convertire il segnale_fading in tipo numerico
+    segnale_fading = double(segnale_fading);
     
     % Rumore termico (AWGN)
     SNR_dB = 20; % Rapporto segnale/rumore desiderato (in dB)
