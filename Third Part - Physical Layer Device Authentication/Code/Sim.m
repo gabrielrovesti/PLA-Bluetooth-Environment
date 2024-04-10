@@ -1,6 +1,9 @@
 clc;
 clear all; close all;
 
+% Creazione di un oggetto RSA
+rsa_obj = RSA();
+
 % Parametri di trasmissione
 N = 100; % Numero di trasmissioni da simulare
 
@@ -12,8 +15,11 @@ potenza_chiave = randi([-15, 15], 1, N); % Potenza di chiave
 dato = randi([0, 1], 1, 100); 
 chiave = randi([0, 1], 1, 100); 
 
+% Criptare il messaggio dato utilizzando la chiave pubblica
+dato_crittato = rsa_obj.encrypt(dato);
+
 % Invio del segnale con certa potenza con chiave pubblica (ricevente)
-segnale_inviato = mix_signal(dato, chiave, potenza_dato, potenza_chiave);
+segnale_inviato = mix_signal(dato_crittato, chiave, potenza_dato, potenza_chiave);
 
 % Calcolo delle threshold per decodifica
 p_min_dato = min(potenza_dato);
@@ -96,7 +102,7 @@ for i = 1:30  % Poiché 150/5 = 30
             num_bit_errati_key = num_bit_errati_key + 1;
         end
 
-        if decoded_message(j) ~= dato(j)
+        if decoded_message(j) ~= dato_crittato(j)
             num_bit_errati_mex = num_bit_errati_mex + 1;
         end
     end
@@ -105,6 +111,9 @@ for i = 1:30  % Poiché 150/5 = 30
     BER_message(i) = num_bit_errati_mex / length(decoded_message);
     BER_key(i) = num_bit_errati_key / length(decoded_key);
 end
+
+% Decrittare il messaggio utilizzando la chiave privata
+messaggio_decripted = rsa_obj.decrypt(decoded_message);
 
 % Messaggi autentici/non autentici/threshold
 
@@ -157,20 +166,24 @@ xlabel('Distanza (m)');
 ylabel('BER');
 grid on;
 
-function segnale_inviato = mix_signal(dato, chiave, potenza_dato, potenza_chiave)
+function segnale_inviato = mix_signal(dato_crittato, chiave, potenza_dato, potenza_chiave)
+    % Convert symbolic variables to numeric values
+    dato_crittato = double(dato_crittato);
+    chiave = double(chiave);
+
     % Verifica e adattamento delle lunghezze del dato casuale e della chiave di autenticazione
-    if length(dato) > length(chiave)
-        chiave = [chiave, zeros(1, length(dato) - length(chiave))];
-    elseif length(dato) < length(chiave)
-        chiave = chiave(1:length(dato));
+    if length(dato_crittato) > length(chiave)
+        chiave = [chiave, zeros(1, length(dato_crittato) - length(chiave))];
+    elseif length(dato_crittato) < length(chiave)
+        chiave = chiave(1:length(dato_crittato));
     end
     
     % Inizializzazione del segnale mixato
-    segnale_inviato = zeros(1, length(dato));
+    segnale_inviato = zeros(1, length(dato_crittato));
     
     % Mixaggio del dato con la chiave utilizzando l'operatore XOR
-    for i = 1:length(dato)
-        segnale_inviato(i) = bitxor(dato(i), chiave(i));
+    for i = 1:length(dato_crittato)
+        segnale_inviato(i) = bitxor(dato_crittato(i), chiave(i));
     end
 
     % Potenzia il segnale di dato con la potenza fornita - conversione in

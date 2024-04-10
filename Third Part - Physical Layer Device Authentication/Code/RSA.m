@@ -59,3 +59,24 @@ classdef RSA
         end
     end
 end
+
+function a = expMod(x, e, m)
+    % Modular Exponentiation
+    %   expMod(x,e,m) computes x^e mod m by the binary method:
+    %     x^2e'   mod m  =    (x^2 mod m)^e' mod m
+    %     x^2e'+1 mod m  =  x*(x^2 mod m)^e' mod m
+    %   e,m must be nonnegative integers
+
+    if e == 0 % Base case: exponent 0
+        a = sym(1);
+    elseif e == 1 % Base case: exponent 1
+        a = x;
+    elseif mod(e, 2) == 0 % Recursion: e even
+        x_squared_mod_m = mod(x .* x, m);
+        a = expMod(x_squared_mod_m, e / 2, m);
+    else % Recursion: e odd
+        x_squared_mod_m = mod(x .* x, m);
+        exp_mod_result = expMod(x_squared_mod_m, (e - 1) / 2, m);
+        a = mod(x .* exp_mod_result, m);
+    end
+end
