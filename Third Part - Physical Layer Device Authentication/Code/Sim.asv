@@ -4,27 +4,45 @@ clear all; close all;
 % Creazione di un oggetto RSA
 rsa = RSA();
 
-% Parametri di trasmissione
-N = 100; % Numero di trasmissioni da simulare
+% Numero di trasmissioni da simulare
+N = 100; 
 
 % Generazione potenza di trasmissione e di chiave (in milliwatt)
 potenza_dato = randi([-20, 20], 1, N); % Potenza di trasmissione
 
 % Generazione dati e chiavi casuali per tutte le trasmissioni a 100 bit
 dato = randi([0,1], 1, 100); 
-% dato = randi([0,1], 100); % Segnale diverso per 100 distanze
+% dato = randi([0,1], 100); % Questo per rendere segnale diverso per 100 distanze
 
 % Criptare il messaggio dato utilizzando la chiave pubblica
 dato_crittato = rsa.encrypt(dato);
 
-% Invio del segnale con certa potenza con chiave pubblica (ricevente)
+% Creazione dei segnali sbagliati
+% Per esempio, flippando un 10% sui bit totali
+error_rate = 0.1;
+dato_crittato_sbagliato = dato_crittato;
+numero_errori_sb = round(error_rate * numel(dato_crittato));
+indice_flip = randperm(numel(dato_crittato), numero_errori_sb);
+dato_crittato_sbagliato(indice_flip) = ~dato_crittato_sbagliato(indice_flip); 
+% Flippa i bit a indici selezionati casualmente 
+
+% Invio del segnale corretto con certa potenza mischiato con chiave RSA
 segnale_inviato = dato_crittato .* 10.^(potenza_dato/20);
 
+% Invio del segnale sbagliato con certa potenza mischiato con chiave RSA
+% sbagliata
+segnale_inviato_wrong = dato_crittato_sbagliato .* 10.^(potenza_dato/20);
+
+% Vettori per successivi ragionamenti
 distanza = [];
 segnale_ricevuto = [];
 segnale_filtrato = [];
 messaggio_decodificato = [];
 num_bit_errati = 0;
+
+messaggio_decrittato = [];
+false_alarms = [];
+missed_detections = [];
 
 % Mandare il segnale e ricalcolo segnale al ricevitore (decodifica)
 % Threshold iniziali e verifichiamo quanto il segnale con rumori disti 
@@ -55,7 +73,7 @@ for i = 1:30  % Poiché 150/5 = 30
     p_min_fs = min(segnale_filtrato);
     p_max_fs = max(segnale_filtrato);
 
-    % Decodifica bit per bit del segnale ricevuto con disturbo
+    % Decodifica bit per bit del segnale ricevuto con disturbo (per BER)
     for j = 1:length(segnale_filtrato)
 
         % Decodifica in forma segnale messaggio
@@ -74,7 +92,7 @@ for i = 1:30  % Poiché 150/5 = 30
         end
 
         % Calcolo del numero di bit errati sul dato
-
+        % Distanza di Hamming
         if messaggio_decodificato(j) ~= dato_crittato(j)
             num_bit_errati = num_bit_errati + 1;
         end
@@ -83,19 +101,20 @@ for i = 1:30  % Poiché 150/5 = 30
     % Calcolo del BER per messaggio e chiave
     BER(i) = num_bit_errati / length(messaggio_decodificato);
 
-    %% Decodifica di segnale_filtrato per chiave
-    % Ottieni dsegnale_filtrato_decodificato (richiamo di decrypt)
+    %% Decrittazione di segnale_filtrato per chiave
+    % Ottieni segnale_filtrato_decodificato (richiamo di decrypt di RSA)
+    
 end
 
-% Messaggi autentici/non autentici
-%% Uso RSA per capire come fare
+messaggio_decrittato = rsa.decrypt(segnale_filtrato);
 
+% Messaggi autentici/non autentici
 % https://security.stackexchange.com/questions/192156/how-to-authenticate-using-rsa-avoiding-mitm-attacks
 
 %% Missed detection/false alarm
 
-% Creazione del vettore per l'asse temporale
-bitr = 1:length(segnale_inviato);
+% Flusso di bit trasmesso nel tempo (vettore)
+tempo = 1:length(segnale_inviato);
 
 % Plot del segnale originale e del segnale ricevuto
 figure;
@@ -127,7 +146,7 @@ grid on;
 % Plot del BER per segnale dato
 subplot(2, 2, 4);
 plot(distanza, BER, '-o', 'LineWidth', 2);
-title('Bit Error Rate (BER) per segnale dato+chiave');
+title('Bit Error Rate (BER) per segnale dato + chiave');
 xlabel('Distanza (m)');
 ylabel('BER (%)');
 grid on;

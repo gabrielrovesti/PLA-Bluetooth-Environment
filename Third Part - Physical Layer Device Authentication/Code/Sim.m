@@ -17,14 +17,19 @@ dato = randi([0,1], 1, 100);
 % Criptare il messaggio dato utilizzando la chiave pubblica
 dato_crittato = rsa.encrypt(dato);
 
-% Invio del segnale con certa potenza con chiave pubblica (ricevente)
+% Invio del segnale corretto con certa potenza mischiato con chiave RSA
 segnale_inviato = dato_crittato .* 10.^(potenza_dato/20);
 
+% Vettori per successivi ragionamenti
 distanza = [];
 segnale_ricevuto = [];
 segnale_filtrato = [];
 messaggio_decodificato = [];
 num_bit_errati = 0;
+
+messaggio_decrittato = [];
+false_alarms = [];
+missed_detections = [];
 
 % Mandare il segnale e ricalcolo segnale al ricevitore (decodifica)
 % Threshold iniziali e verifichiamo quanto il segnale con rumori disti 
@@ -38,7 +43,7 @@ for i = 1:30  % Poiché 150/5 = 30
         distanza(i) = distanza(i-1) + 5;
     end
     
-    % Effetto canale su segnale ricevuto (disturbato)
+    % Effetto canale su segnale ricevuto corretto (disturbato)
     segnale_ricevuto = simulazione_canale(segnale_inviato, distanza(i));
 
     % Filtro del rumore e normalizzazione per togliere rumore condiviso
@@ -55,7 +60,7 @@ for i = 1:30  % Poiché 150/5 = 30
     p_min_fs = min(segnale_filtrato);
     p_max_fs = max(segnale_filtrato);
 
-    % Decodifica bit per bit del segnale ricevuto con disturbo
+    % Decodifica bit per bit del segnale ricevuto con disturbo (per BER)
     for j = 1:length(segnale_filtrato)
 
         % Decodifica in forma segnale messaggio
@@ -74,7 +79,7 @@ for i = 1:30  % Poiché 150/5 = 30
         end
 
         % Calcolo del numero di bit errati sul dato
-
+        % Distanza di Hamming
         if messaggio_decodificato(j) ~= dato_crittato(j)
             num_bit_errati = num_bit_errati + 1;
         end
@@ -82,19 +87,24 @@ for i = 1:30  % Poiché 150/5 = 30
 
     % Calcolo del BER per messaggio e chiave
     BER(i) = num_bit_errati / length(messaggio_decodificato);
-
-    %% Decrittazione di segnale_filtrato per chiave
-    % Ottieni segnale_filtrato_decodificato (richiamo di decrypt di RSA)
 end
 
-% Messaggi autentici/non autentici
-%% Uso RSA per capire come fare
+% Decriptare il messaggio giusto
 
-% https://security.stackexchange.com/questions/192156/how-to-authenticate-using-rsa-avoiding-mitm-attacks
+% Messaggi autentici e non autentici = non ha senso "saperlo prima",
+% perché va capito dinamicamente (o con thresholds o con qualcos'altro)
 
-%% Missed detection/false alarm
+% messaggio_decrittato = rsa.decrypt(segnale_ricevuto);
 
-% Flusso di bit trasmesso nel tempo (vettore)
+% False alarm = Messaggi giusti interpretati come sbagliati (falsi
+% positivi) sul numero di messaggi totali inviati. Questo è una
+% percentuale
+
+% % Missed detection = Messaggi sbagliati interpretati come giusti
+% % (rilevazioni scorrette - misdetections) sul numero di messaggi totali inviati. 
+% Questo è una percentuale
+
+% Flusso di bit trasmesso nel tempo (convertito in vettore)
 tempo = 1:length(segnale_inviato);
 
 % Plot del segnale originale e del segnale ricevuto
