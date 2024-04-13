@@ -4,15 +4,15 @@ clear all; close all;
 % Creazione di un oggetto RSA
 rsa = RSA();
 
-% Numero di trasmissioni da simulare
-N = 100; 
+% Parametri di trasmissione
+N = 100; % Numero di trasmissioni da simulare
 
 % Generazione potenza di trasmissione e di chiave (in milliwatt)
 potenza_dato = randi([-20, 20], 1, N); % Potenza di trasmissione
 
 % Generazione dati e chiavi casuali per tutte le trasmissioni a 100 bit
 dato = randi([0,1], 1, 100); 
-% dato = randi([0,1], 100); % Questo per rendere segnale diverso per 100 distanze
+% dato = randi([0,1], 100); % Segnale diverso per 100 distanze
 
 % Criptare il messaggio dato utilizzando la chiave pubblica
 dato_crittato = rsa.encrypt(dato);
@@ -83,8 +83,8 @@ for i = 1:30  % Poiché 150/5 = 30
     % Calcolo del BER per messaggio e chiave
     BER(i) = num_bit_errati / length(messaggio_decodificato);
 
-    %% Decrittazione di segnale_filtrato per chiave
-    % Ottieni segnale_filtrato_decodificato (richiamo di decrypt di RSA)
+    %% Decodifica di segnale_filtrato per chiave
+    % Ottieni dsegnale_filtrato_decodificato (richiamo di decrypt)
 end
 
 % Messaggi autentici/non autentici
@@ -94,8 +94,8 @@ end
 
 %% Missed detection/false alarm
 
-% Flusso di bit trasmesso nel tempo (vettore)
-tempo = 1:length(segnale_inviato);
+% Creazione del vettore per l'asse temporale
+bitr = 1:length(segnale_inviato);
 
 % Plot del segnale originale e del segnale ricevuto
 figure;
@@ -127,7 +127,7 @@ grid on;
 % Plot del BER per segnale dato
 subplot(2, 2, 4);
 plot(distanza, BER, '-o', 'LineWidth', 2);
-title('Bit Error Rate (BER) per segnale dato + chiave');
+title('Bit Error Rate (BER) per segnale dato+chiave');
 xlabel('Distanza (m)');
 ylabel('BER (%)');
 grid on;
