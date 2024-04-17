@@ -1,7 +1,4 @@
 function BER = sim()
-
-    clc;
-    clear all; close all;
     
     % Creazione di un oggetto RSA
     rsa = RSA();
@@ -33,6 +30,8 @@ function BER = sim()
     messaggio_decodificato = [];
     num_bit_errati = 0;
     num_bit_corretti = 0;
+
+    x = []; % vettore delle soglie dinamiche, riempito con l'analisi delle medie sui dati
     
     % Mandare il segnale e ricalcolo segnale al ricevitore (decodifica)
     % Threshold iniziali e verifichiamo quanto il segnale con rumori disti 
@@ -103,15 +102,13 @@ function BER = sim()
         % Calcolo del BER per messaggio e chiave
         BER(i) = num_bit_errati / length(messaggio_decodificato);
     
-        % Logica 
+        %% Parte mancante 1
+
         % if BER(i) > x(i) then "Messaggio autentico"
         % else "Messaggio non autentico"
     end
-    
+    %% Parte mancante 2
     % Decriptare il messaggio giusto
-    
-    % Messaggi autentici e non autentici = non ha senso "saperlo prima",
-    % perché va capito dinamicamente (o con thresholds o con qualcos'altro)
     
     % messaggio_decrittato = rsa.decrypt(segnale_ricevuto);
     

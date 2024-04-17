@@ -1,5 +1,5 @@
 clc;
-clear all; close all;
+clear;
 
 % Numero di simulazioni da eseguire
 numero_simulazioni = 10; % Modificare il numero di simulazioni desiderato
