@@ -1,0 +1,28 @@
+===============
+CALCOLO FA E MD
+===============	
+
+Una volta ricavato il vettore di soglie X, lo si usa per determinare se il messaggio è autentico oppure no andando a verificare se l'errore di trasmissione per una certa distanza è accettabile (<= BER(i)) o no (> BER(i)). 
+
+Fatto ciò, per calcolare effettivamente FA e MD si generano due istanze di RSA: 
+- la prima autentica (messaggio generato dal mittente)
+- la seconda non autentica (messaggio generato dall'attaccante --> capire se applicare la seconda RSA sul dato originale o sul dato ricostruito dall'attaccante e ATTENZIONE A NON RIGENERARE LA CHIAVE PUBBLICA DEL DESTINATARIO, se ciò non dovesse essere possibile valutare un altro approccio)
+
+Una volta costruito il messaggio autentico e non autentico si calcola la FA nel seguente modo: 
+- contare quanti messaggi autentici (prima istanza di RSA) vengono rilevati come non autentici / numero totale di messaggi inviati
+
+Una volta costruito il messaggio autentico e non autentico si calcola la MD nel seguente modo: 
+- contare quanti messaggi non autentici (seconda istanza di RSA) vengono rilevati come autentici / numero totale di messaggi inviati
+
+
+
+======================
+ALTRO SU CUI DISCUTERE
+======================
+
+Come adattare il vettore X delle soglie BER in base alla configurazione del canale? 
+- manipolare il calcolo del BER in modo da renderlo dipendente dalla configurazione del canale (potenza, rumore, ecc)
+- creare n vettori X delle soglie BER in base a possibili range di configurazione del canale (esempio: un vettore X per potenza nel range [-20,-10], ecc.)
+
+
+ALTERNATIVA ALL'USO DEI BER: soglie dinamiche ma se non arriviamo ad una soluzione noi è un alternativa che porterebbe via troppo tempo.
