@@ -26,12 +26,11 @@ workbook.Workbooks.Add;
 worksheet = workbook.ActiveSheet;
 
 % Scrittura dei valori di BER per ogni simulazione nel foglio Excel
-worksheet.Range('A1').Value = 'Distanza (m)';
 for simulazione = 1:numero_simulazioni
     colonna_iniziale = 2 * (simulazione - 1) + 1; % Calcola la colonna iniziale per questa simulazione
     colonna_BER = colonna_iniziale + 1; % Colonna per i valori di BER
     
-    worksheet.Range(sprintf('%s1', char('A' + colonna_iniziale))).Value = ['BER - Simulazione ', num2str(simulazione)];
+    worksheet.Range(sprintf('%s1', char('A' + colonna_iniziale))).Value = ['Sim ', num2str(simulazione)];
     
     % Scrivi i valori di BER per questa simulazione
     for i = 1:length(BER)
