@@ -103,7 +103,8 @@ for i = 1:30  % Poiché 150/5 = 30
     end
     
     % Effetto canale su segnale ricevuto corretto (disturbato dal rumore di fondo del canale)
-    segnale_ricevuto = simulazione_canale(segnale_non_autentico, distanza(i));
+    segnale_ricevuto = simulazione_canale(segnale_inviato, distanza(i));
+    
 
     % Filtro del rumore e normalizzazione per togliere rumore condiviso
     % e prendere il segnale integro (bassa frequenza)
@@ -113,7 +114,7 @@ for i = 1:30  % Poiché 150/5 = 30
     % altrimenti numero di bit sulle migliaia (30 * 100 = 3000)
     num_bit_errati = 0;
     % Se non azzeriamo, viene il grafico direttamente propozionale BER
-    % (=retta)
+    % (= retta)
 
     % Assumendo la trasmissione come autentica a priori, 
     % il SNR condiziona la scelta del filtro al destinatario, essendo
@@ -163,63 +164,78 @@ for i = 1:30  % Poiché 150/5 = 30
     BER(i) = num_bit_errati / length(messaggio_decodificato);
     
     % Controllo del messaggio rispetto alle soglie "center"
-    if BER(i) < x(i)
-        % Messaggio autentico
+    if BER(i) <= x(i)
+        % Messaggio autentico = mando solo messaggi autentici (plot 1)
         MD = MD + 1;
-    else
-        % Messaggio non autentico
-        FA = FA + 1;
     end
 end
-%% Parte mancante 2
-% Decriptare il messaggio giusto
 
-% messaggio_decrittato = rsa.decrypt(segnale_ricevuto);
+% Se variassimo tutte le distanze con tutti i messaggi
+% fa_probs = zeros(1, 30);
+% md_probs = zeros(1, 30);
+
+MD_prob = MD / 30;
 
 % False alarm = Messaggi giusti interpretati come sbagliati (falsi
 % positivi) sul numero di messaggi totali inviati. Questo è una
 % percentuale
+% aka False Positive (FP)
 
-% % Missed detection = Messaggi sbagliati interpretati come giusti
-% % (rilevazioni scorrette - misdetections) sul numero di messaggi totali inviati. 
+% Missed detection = Messaggi sbagliati interpretati come giusti
+% (rilevazioni scorrette - misdetections) sul numero di messaggi totali inviati. 
 % Questo è una percentuale
+% aka False Negative (FP)
+
+% Decriptare il messaggio una volta che il messaggio è autentico sulla
+% base del precedente avviene con RSA; "il messaggio è autentico,
+% decritta solo quello corretto
+
+% Messaggio_decrittato = rsa.decrypt(segnale_ricevuto);
 
 %% Plot
 
-% Flusso di bit trasmesso nel tempo (convertito in vettore)
-tempo = 1:length(segnale_non_autentico);
-
-% Plot del segnale originale e del segnale ricevuto
-figure;
-
-% Plot del segnale trasmesso
-subplot(2, 2, 1);
-plot(tempo, segnale_non_autentico, 'LineWidth', 2);
-title('Segnale Trasmesso sbagliato');
-xlabel('Tempo');
-ylabel('Ampiezza (dB)');
-grid on;
-
-% Plot del segnale ricevuto
-subplot(2, 2, 2);
-plot(tempo, segnale_ricevuto, 'LineWidth', 2);
-title('Segnale Ricevuto');
-xlabel('Tempo');
-ylabel('Ampiezza (dB)');
-grid on;
-
-% Plot del segnale filtrato
-subplot(2, 2, 3);
-plot(tempo, segnale_filtrato, 'LineWidth', 2);
-title('Segnale Filtrato');
-xlabel('Tempo');
-ylabel('Ampiezza (dB)');
-grid on;
-
-% Plot del BER per segnale dato
-subplot(2, 2, 4);
-plot(distanza, BER, '-o', 'LineWidth', 2);
-title('Bit Error Rate (BER) per segnale dato + chiave');
-xlabel('Distanza (m)');
-ylabel('BER (%)');
-grid on;
+% % Flusso di bit trasmesso nel tempo (convertito in vettore)
+% tempo = 1:length(segnale_inviato);
+% 
+% % Plot del segnale originale e del segnale ricevuto
+% figure;
+% 
+% % Plot del segnale trasmesso
+% subplot(2, 2, 1);
+% plot(tempo, segnale_inviato, 'LineWidth', 2);
+% title('Segnale Trasmesso');
+% xlabel('Tempo');
+% ylabel('Ampiezza (dB)');
+% grid on;
+% 
+% % Plot del segnale ricevuto
+% subplot(2, 2, 2);
+% plot(tempo, segnale_ricevuto, 'LineWidth', 2);
+% title('Segnale Ricevuto');
+% xlabel('Tempo');
+% ylabel('Ampiezza (dB)');
+% grid on;
+% 
+% % Plot del segnale filtrato
+% subplot(2, 2, 3);
+% plot(tempo, segnale_filtrato, 'LineWidth', 2);
+% title('Segnale Filtrato');
+% xlabel('Tempo');
+% ylabel('Ampiezza (dB)');
+% grid on;
+% 
+% % Plot del BER per segnale dato
+% subplot(2, 2, 4);
+% plot(distanza, BER, '-o', 'LineWidth', 2);
+% title('Bit Error Rate (BER) per segnale dato + chiave');
+% xlabel('Distanza (m)');
+% ylabel('BER (%)');
+% grid on;
+% 
+% % Plot FA e MD
+% figure;
+% plot(MD_prob, FA_prob, '-o');
+% xlabel('Probabilità di Missed Detection');
+% ylabel('Probabilità di False Alarm');
+% title('Curva ROC - FP / FN ');
+% grid on;

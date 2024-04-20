@@ -38,21 +38,6 @@ function BER = Sim()
     segnale_inviato = segnale_inviato + rumore;
 %%
 
-%% Blocco messaggio inviato come non autentico
-    % Caso migliore per attaccante: conosce tutti i parametri
-
-    % Generazione nuovo dato casuale = implica il ragionamento che
-    % l'attaccante possa avere un dato, anche parziale, rispetto alla
-    % trasmissione originale
-
-    % Creazione nuova istanza di RSA; l'attaccante potrebbe conoscere il
-    % metodo autenticativo presente sul canale, ma di per sé l'istanza di
-    % RSA è la stessa data la chiave pubblica presente. Cambiando il dato
-    % dovrebbe essere riconosciuto in fase di decrittazione
-
-    % Ideale = tiene la stessa potenza e considera la presenza di aggiunta
-    % del rumore per poi essere trovato dal destinatario, quindi ripulito
-
     %% Blocco messaggio inviato come non autentico
     % Caso migliore per attaccante: conosce tutti i parametri
     
@@ -105,7 +90,10 @@ function BER = Sim()
         
         % Effetto canale su segnale ricevuto corretto (disturbato dal rumore di fondo del canale)
         segnale_ricevuto = simulazione_canale(segnale_inviato, distanza(i));
-    
+
+        % Invio messaggio non autentico
+        % segnale_ricevuto = simulazione_canale(segnale_non_autentico, distanza(i));
+
         % Filtro del rumore e normalizzazione per togliere rumore condiviso
         % e prendere il segnale integro (bassa frequenza)
         % rispetto a rumore e interferenza (alta frequenza)
@@ -114,7 +102,7 @@ function BER = Sim()
         % altrimenti numero di bit sulle migliaia (30 * 100 = 3000)
         num_bit_errati = 0;
         % Se non azzeriamo, viene il grafico direttamente propozionale BER
-        % (=retta)
+        % (= retta)
     
         % Assumendo la trasmissione come autentica a priori, 
         % il SNR condiziona la scelta del filtro al destinatario, essendo
@@ -164,28 +152,41 @@ function BER = Sim()
         BER(i) = num_bit_errati / length(messaggio_decodificato);
         
         % Controllo del messaggio rispetto alle soglie "center"
-        if BER(i) < x(i)
-            % Messaggio autentico
+        if BER(i) <= x(i)
+            % Messaggio autentico = mando solo messaggi autentici (plot 1)
             MD = MD + 1;
-        else
-            % Messaggio non autentico
+        elseif BER(i) > x(i) 
+            % Messaggio non autentico = mando solo messaggi non autentici (plot 2)
             FA = FA + 1;
         end
     end
-    %% Parte mancante 2
-    % Decriptare il messaggio giusto
-    
-    % messaggio_decrittato = rsa.decrypt(segnale_ricevuto);
-    
+
+    % Se variassimo tutte le distanze con tutti i messaggi
+    % fa_probs = zeros(1, 30);
+    % md_probs = zeros(1, 30);
+
+    FA_prob = FA / 30;
+    MD_prob = MD / 30;
+
+    % Non riusciamo a fare il plot completo in quanto è una percentuale
+    % (se variasse per tutte le distanze il dato inviato allora si
+    % riuscirebbe a fare anche questo)
+
     % False alarm = Messaggi giusti interpretati come sbagliati (falsi
     % positivi) sul numero di messaggi totali inviati. Questo è una
     % percentuale
     
-    % % Missed detection = Messaggi sbagliati interpretati come giusti
-    % % (rilevazioni scorrette - misdetections) sul numero di messaggi totali inviati. 
+    % Missed detection = Messaggi sbagliati interpretati come giusti
+    % (rilevazioni scorrette - misdetections) sul numero di messaggi totali inviati. 
     % Questo è una percentuale
+
+    % Decriptare il messaggio una volta che il messaggio è autentico sulla
+    % base del precedente avviene con RSA; "il messaggio è autentico,
+    % decritta solo quello corretto
     
-    %% Plot
+    % Messaggio_decrittato = rsa.decrypt(segnale_ricevuto);
+    
+    %% Plot messaggi autentici
     % 
     % % Flusso di bit trasmesso nel tempo (convertito in vettore)
     % tempo = 1:length(segnale_inviato);
@@ -224,4 +225,44 @@ function BER = Sim()
     % xlabel('Distanza (m)');
     % ylabel('BER (%)');
     % grid on;
+    % Plot FA e MD
+    % figure;
+    % plot(MD_prob, FA_prob, '-o');
+    % xlabel('Probabilità di Missed Detection');
+    % ylabel('Probabilità di False Alarm');
+    % title('Curva ROC - FP / FN ');
+    % grid on;
+
+    %% Plot messaggi non autentici
+    % 
+    % % Flusso di bit trasmesso nel tempo (convertito in vettore)
+    % tempo = 1:length(segnale_inviato);
+    % 
+    % % Plot del segnale originale e del segnale ricevuto
+    % figure;
+    % 
+    % % Plot del segnale trasmesso
+    % subplot(2, 2, 1);
+    % plot(tempo, segnale_non_autentico, 'LineWidth', 2);
+    % title('Segnale Trasmesso');
+    % xlabel('Tempo');
+    % ylabel('Ampiezza (dB)');
+    % grid on;
+    % 
+    % % Plot del segnale ricevuto
+    % subplot(2, 2, 2);
+    % plot(tempo, segnale_ricevuto, 'LineWidth', 2);
+    % title('Segnale Ricevuto');
+    % xlabel('Tempo');
+    % ylabel('Ampiezza (dB)');
+    % grid on;
+    % 
+    % % Plot del segnale filtrato
+    % subplot(2, 2, 3);
+    % plot(tempo, segnale_filtrato, 'LineWidth', 2);
+    % title('Segnale Filtrato');
+    % xlabel('Tempo');
+    % ylabel('Ampiezza (dB)');
+    % grid on;
+    % 
 end

@@ -25,12 +25,22 @@ Una volta costruito il messaggio autentico e non autentico si calcola la MD nel 
     - messaggio non autentico?
 
 ======================
-ALTRO SU CUI DISCUTERE
+ALTRO SU CUI DISCUTERE - RISOLTO
 ======================
+
+- Implementazione futura 1
 
 Come adattare il vettore X delle soglie BER in base alla configurazione del canale? 
 - manipolare il calcolo del BER in modo da renderlo dipendente dalla configurazione del canale (potenza, rumore, ecc)
 - creare n vettori X delle soglie BER in base a possibili range di configurazione del canale (esempio: un vettore X per potenza nel range [-20,-10], ecc.)
 
+    - si potrebbe estendere la simulazione Sim inserendo dei possibili parametri appositi, a quel punto creare dei file Excel in grado di raccogliere le BER e se possibile 
 
-ALTERNATIVA ALL'USO DEI BER: soglie dinamiche ma se non arriviamo ad una soluzione noi è un alternativa che porterebbe via troppo tempo.
+- Implementazione futura 2
+
+- Alternativa possibile: soglie dinamiche
+
+    - analizzare X segnali che sappiamo già essere autentici o non autentici (soglie dinaiche = fase di decodifica)
+    - raccogliere abbastanza dati per il vettore delle soglie X
+    - false alarm e missed detection
+    - = analisi più granulare sul tipo di segnale raccolto
