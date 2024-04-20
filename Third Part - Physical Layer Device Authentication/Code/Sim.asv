@@ -40,37 +40,7 @@ function BER = Sim()
 
 %% Blocco messaggio inviato come non autentico
     % Caso migliore per attaccante: conosce tutti i parametri
-
-    % Generazione nuovo dato casuale = implica il ragionamento che
-    % l'attaccante possa avere un dato, anche parziale, rispetto alla
-    % trasmissione originale
-
-    % Creazione nuova istanza di RSA; l'attaccante potrebbe conoscere il
-    % metodo autenticativo presente sul canale, ma di per sé l'istanza di
-    % RSA è la stessa data la chiave pubblica presente. Cambiando il dato
-    % dovrebbe essere riconosciuto in fase di decrittazione
-
-    % Ideale = tiene la stessa potenza e considera la presenza di aggiunta
-    % del rumore per poi essere trovato dal destinatario, quindi ripulito
-
-    %% Blocco messaggio inviato come non autentico
-    % Caso migliore per attaccante: conosce tutti i parametri
-    
-    % Generazione nuovo dato casuale = implica il ragionamento che
-    % l'attaccante possa avere un dato, anche parziale, rispetto alla
-    % trasmissione originale
-    dato_non_autentico = randi([0, 1], 1, 100); % Nuovo dato casuale di 100 bit
-    
-    % Creazione nuova istanza di RSA; l'attaccante potrebbe conoscere il
-    % metodo autenticativo presente sul canale, ma di per sé l'istanza di
-    % RSA è la stessa data la chiave pubblica presente. Cambiando il dato
-    % dovrebbe essere riconosciuto in fase di decrittazione
-    
-    % Ideale = tiene la stessa potenza e considera la presenza di aggiunta
-    % del rumore per poi essere trovato dal destinatario, quindi ripulito
-    segnale_non_autentico = dato_non_autentico .* 10.^(potenza_dato/20);
-
-    segnale_non_autentico = segnale_non_autentico + rumore;
+    % Generazione nuovo dato casuale = implica
 %%
 
     % Vettori di simulazione

@@ -6,3 +6,9 @@ Authentication for the Internet of Things Devices: https://arxiv.org/pdf/2303.00
 - Physical-Layer Authentication for
 Wireless Security Enhancement:
 Current Challenges and Future Developments: https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=7498103&casa_token=O-ikgK0_6ysAAAAA:JV4e5HVTr_dam167QWeyFKdM9Crnei7nBw_Lye_IbOwRob1oCXdss-mmESy8jOuKFb5nUcw&tag=1z
+
+Da aggiungere:
+- A Hybrid Encryption Algorithm Based on DES and RSA in Bluetooth Communication:
+https://ieeexplore.ieee.org/document/5558315
+- Analysis of E0, DES, RSA, AES and Hybrid Algorithm for Bluetooth Transmission:
+https://www.researchgate.net/publication/335319868_Analysis_of_E0_DES_RSA_AES_and_Hybrid_Algorithm_for_Bluetooth_Transmission
