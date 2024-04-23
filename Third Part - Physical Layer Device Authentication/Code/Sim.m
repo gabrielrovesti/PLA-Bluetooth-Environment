@@ -26,6 +26,7 @@ function BER = Sim()
     snr = 10^(snr_db/10);
 
     % Invio del segnale corretto con certa potenza mischiato con chiave RSA
+    % https://dspillustrations.com/pages/posts/misc/decibel-conversion-factor-10-or-factor-20.html#:~:text=XdB%3D10log,dB%20scale%20XdB.
     segnale_inviato = dato_crittato .* 10.^(potenza_dato/20);
 
     % Calcolo della potenza del rumore in base al segnale e al SNR
@@ -74,8 +75,7 @@ function BER = Sim()
     missed_detection_prob = 0;
 
     % "x" = vettore delle soglie dinamiche, riempito con l'analisi delle medie sui dati
-    x = [0.49, 0.47, 0.49, 0.48, 0.49, 0.50, 0.49, 0.48, 0.49, 0.49, 0.51, 0.48, 0.49, 0.49, 0.49, 0.49, 0.47, 0.49, 0.49, 0.49, 0.49, 0.48, 0.48, 0.48, 0.51, 0.49, 0.50, 0.49, 0.48, 0.48];
-    
+    x = [0.49680, 0.49395, 0.49795, 0.49575, 0.49905, 0.49765, 0.49330, 0.49335, 0.49405, 0.50115, 0.49960, 0.49550, 0.49520, 0.49175, 0.49775, 0.49720, 0.49725, 0.49770, 0.49710, 0.49660, 0.49530, 0.49260, 0.49570, 0.49830, 0.50205, 0.49700, 0.49500, 0.49745, 0.49545, 0.49535];   
     % Mandare il segnale e ricalcolo segnale al ricevitore (decodifica)
     % Threshold iniziali e verifichiamo quanto il segnale con rumori disti 
     
@@ -224,13 +224,6 @@ function BER = Sim()
     % title('Bit Error Rate (BER) per segnale dato + chiave');
     % xlabel('Distanza (m)');
     % ylabel('BER (%)');
-    % grid on;
-    % Plot FA e MD
-    % figure;
-    % plot(MD_prob, FA_prob, '-o');
-    % xlabel('Probabilità di Missed Detection');
-    % ylabel('Probabilità di False Alarm');
-    % title('Curva ROC - FP / FN ');
     % grid on;
 
     %% Plot messaggi non autentici

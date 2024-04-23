@@ -88,7 +88,7 @@ false_alarm_prob = 0;
 missed_detection_prob = 0;
 
 % "x" = vettore delle soglie dinamiche, riempito con l'analisi delle medie sui dati
-x = [0.49, 0.47, 0.49, 0.48, 0.49, 0.50, 0.49, 0.48, 0.49, 0.49, 0.51, 0.48, 0.49, 0.49, 0.49, 0.49, 0.47, 0.49, 0.49, 0.49, 0.49, 0.48, 0.48, 0.48, 0.51, 0.49, 0.50, 0.49, 0.48, 0.48];
+x = [0.49680, 0.49395, 0.49795, 0.49575, 0.49905, 0.49765, 0.49330, 0.49335, 0.49405, 0.50115, 0.49960, 0.49550, 0.49520, 0.49175, 0.49775, 0.49720, 0.49725, 0.49770, 0.49710, 0.49660, 0.49530, 0.49260, 0.49570, 0.49830, 0.50205, 0.49700, 0.49500, 0.49745, 0.49545, 0.49535];   
 
 % Mandare il segnale e ricalcolo segnale al ricevitore (decodifica)
 % Threshold iniziali e verifichiamo quanto il segnale con rumori disti 
@@ -164,17 +164,30 @@ for i = 1:30  % Poiché 150/5 = 30
     BER(i) = num_bit_errati / length(messaggio_decodificato);
     
     % Controllo del messaggio rispetto alle soglie "center"
-    if BER(i) <= x(i)
+    if BER(i) > x(i)
         % Messaggio autentico = mando solo messaggi autentici (plot 1)
-        MD = MD + 1;
+        FA = FA + 1;
     end
+    
+    % Trasmissione messaggio falso
+    % if BER(i) > x(i)
+    % messaggio identificato correttamente come falso
+    % else 
+    % MD = MD + 1
+
+    % Trasmissione messaggio autentico
+    % if BER(i) > x(i)
+    % FA = FA + 1
+    % else 
+    % messaggio identificato correttamente come autentico
+
 end
 
 % Se variassimo tutte le distanze con tutti i messaggi
 % fa_probs = zeros(1, 30);
 % md_probs = zeros(1, 30);
 
-MD_prob = MD / 30;
+FA_prob = FA / 30;
 
 % False alarm = Messaggi giusti interpretati come sbagliati (falsi
 % positivi) sul numero di messaggi totali inviati. Questo è una
@@ -194,48 +207,40 @@ MD_prob = MD / 30;
 
 %% Plot
 
-% % Flusso di bit trasmesso nel tempo (convertito in vettore)
-% tempo = 1:length(segnale_inviato);
-% 
-% % Plot del segnale originale e del segnale ricevuto
-% figure;
-% 
-% % Plot del segnale trasmesso
-% subplot(2, 2, 1);
-% plot(tempo, segnale_inviato, 'LineWidth', 2);
-% title('Segnale Trasmesso');
-% xlabel('Tempo');
-% ylabel('Ampiezza (dB)');
-% grid on;
-% 
-% % Plot del segnale ricevuto
-% subplot(2, 2, 2);
-% plot(tempo, segnale_ricevuto, 'LineWidth', 2);
-% title('Segnale Ricevuto');
-% xlabel('Tempo');
-% ylabel('Ampiezza (dB)');
-% grid on;
-% 
-% % Plot del segnale filtrato
-% subplot(2, 2, 3);
-% plot(tempo, segnale_filtrato, 'LineWidth', 2);
-% title('Segnale Filtrato');
-% xlabel('Tempo');
-% ylabel('Ampiezza (dB)');
-% grid on;
-% 
-% % Plot del BER per segnale dato
-% subplot(2, 2, 4);
-% plot(distanza, BER, '-o', 'LineWidth', 2);
-% title('Bit Error Rate (BER) per segnale dato + chiave');
-% xlabel('Distanza (m)');
-% ylabel('BER (%)');
-% grid on;
-% 
-% % Plot FA e MD
-% figure;
-% plot(MD_prob, FA_prob, '-o');
-% xlabel('Probabilità di Missed Detection');
-% ylabel('Probabilità di False Alarm');
-% title('Curva ROC - FP / FN ');
-% grid on;
+% Flusso di bit trasmesso nel tempo (convertito in vettore)
+tempo = 1:length(segnale_inviato);
+
+% Plot del segnale originale e del segnale ricevuto
+figure;
+
+% Plot del segnale trasmesso
+subplot(2, 2, 1);
+plot(tempo, segnale_inviato, 'LineWidth', 2);
+title('Segnale Trasmesso');
+xlabel('Tempo');
+ylabel('Ampiezza (dB)');
+grid on;
+
+% Plot del segnale ricevuto
+subplot(2, 2, 2);
+plot(tempo, segnale_ricevuto, 'LineWidth', 2);
+title('Segnale Ricevuto');
+xlabel('Tempo');
+ylabel('Ampiezza (dB)');
+grid on;
+
+% Plot del segnale filtrato
+subplot(2, 2, 3);
+plot(tempo, segnale_filtrato, 'LineWidth', 2);
+title('Segnale Filtrato');
+xlabel('Tempo');
+ylabel('Ampiezza (dB)');
+grid on;
+
+% Plot del BER per segnale dato
+subplot(2, 2, 4);
+plot(distanza, BER, '-o', 'LineWidth', 2);
+title('Bit Error Rate (BER) per segnale dato + chiave');
+xlabel('Distanza (m)');
+ylabel('BER (%)');
+grid on;
