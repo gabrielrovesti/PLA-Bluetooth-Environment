@@ -10,6 +10,8 @@ N = 100;
 % convenzionalmente fissati a quel Bluetooth
 % (distanze ridotte/potenza ridotta)
 potenza_dato = randi([-20, 20], 1, N); % Potenza di trasmissione
+disp("Potenza: ")
+disp(potenza_dato);
 
 % Generazione dati e chiavi casuali per tutte le trasmissioni a 100 bit
 dato = randi([0,1], 1, 100); 
@@ -26,6 +28,10 @@ snr = 10^(snr_db/10);
 
 % Invio del segnale corretto con certa potenza mischiato con chiave RSA
 segnale_inviato = dato_crittato .* 10.^(potenza_dato/20);
+disp("Dato crittato: ")
+disp(dato_crittato);
+disp("Segnale inviato: ")
+disp(segnale_inviato);
 
 % Calcolo della potenza del rumore in base al segnale e al SNR
 potenza_rumore = sum(abs(segnale_inviato).^2) / length(segnale_inviato) / snr;
@@ -104,7 +110,6 @@ for i = 1:30  % Poiché 150/5 = 30
     
     % Effetto canale su segnale ricevuto corretto (disturbato dal rumore di fondo del canale)
     segnale_ricevuto = simulazione_canale(segnale_inviato, distanza(i));
-    
 
     % Filtro del rumore e normalizzazione per togliere rumore condiviso
     % e prendere il segnale integro (bassa frequenza)
@@ -243,4 +248,5 @@ plot(distanza, BER, '-o', 'LineWidth', 2);
 title('Bit Error Rate (BER) per segnale dato + chiave');
 xlabel('Distanza (m)');
 ylabel('BER (%)');
+ylim([0,1]);
 grid on;
