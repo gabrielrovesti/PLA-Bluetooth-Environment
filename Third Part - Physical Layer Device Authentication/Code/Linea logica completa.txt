@@ -110,11 +110,11 @@ FA (false alarm) = segnale autentico
 		for T in th
 			for i in N
 			- generi il vettore di autenticazione
-			- generi il segnale completamente sbagliato (non 			autentico)
+			- generi il segnale completamente sbagliato (non autentico)
 			- ti assicuri sia diverso da quello corretto
 			che definiamo noi come corretto
 			- viene trasmesso
-			stessa cosa di prima per capire quanti messaggi 			legittimi avendo generato tutto non legittimo?
+			stessa cosa di prima per capire quanti messaggi legittimi avendo generato tutto non legittimo?
 			calcolo missed detection
 			
 			il valore di threshold dà la coppia FA/MD
