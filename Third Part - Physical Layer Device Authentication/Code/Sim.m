@@ -83,14 +83,11 @@ for distance = 1:max_distance
     min_FA_rate = 0.01; % Minimum FA rate
     max_FA_rate = 0.3; % Maximum FA rate
     
-    % Generate target FA rates with increasing rate for each distance
-    
-    
     % Define ranges for MD rates
     min_MD_rate = 0.1; % Minimum MD rate
     max_MD_rate = 0.5; % Maximum MD rate
     
-    % Generate target MD rates with increasing rate for each distance
+    % Generate target MD and FA rates with increasing rate for each distance
     distance_increment = (max_MD_rate - min_MD_rate) / 50;
     target_MD_rates(distance) = min_MD_rate + (distance - 1) * distance_increment;
     target_FA_rates(distance) = min_FA_rate + (distance - 1) * distance_increment;
