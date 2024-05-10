@@ -18,6 +18,12 @@ signal_length = 100; % Length of the signals
 power_X = -10; % Power for bit 0
 power_Y = 10; % Power for bit 1
 
+std_th_minus = power_X;
+std_th_plus = power_Y;
+
+std_th_auth_plus = 5;
+std_th_auth_minus = -5;
+
 % Initialize signals
 data_signal = zeros(1, signal_length);
 authentication_signal = zeros(1, signal_length);
@@ -135,31 +141,61 @@ ylabel('Power');
 % xlabel('Time');
 % ylabel('Power');
 
-% % Assuming center is 0 (given the signal is -10 and 10)
-% center = 0;
-% 
-% % Initialize arrays to store BER values
-% BER_data = zeros(max_distance, length(SNR));
-% BER_auth = zeros(max_distance, length(SNR));
-% 
-% % Loop through each distance
-% for j = 1:max_distance
-%     % Loop through each SNR level
-%     for k = 1:length(SNR)
-% 
-%         % Generate the transmitted signal
-%         transmitted_signal = S;
-%         % Generate the received signal by adding AWGN
-%         received_signal = awgn(transmitted_signal, SNR(k));
-%         
-%         % Loop through each bit in the received signal
-%         for i = 1:signal_length
-%             % Decode the received signal
-%             % Here, you would implement your decoding algorithm
-%             
-%         end
-%     end
-% end
+% Assuming center is 0 (given the signal is -10 and 10)
+center = 0;
+
+% Initialize arrays to store BER values
+BER_data = zeros(max_distance, length(SNR));
+BER_auth = zeros(max_distance, length(SNR));
+
+received_data=[];
+received_auth=[];
+wrong_data_bits = 0;
+wrong_auth_bits = 0;
+
+% Loop through each distance
+for j = 1:max_distance
+    % Loop through each SNR level
+    for k = 1:length(SNR)
+
+        % Generate the received signal by adding AWGN
+        received_signal = awgn(S, SNR(k));
+        wrong_data_bits = 0;
+        wrong_auth_bits = 0;
+        
+        % Loop through each bit in the received signal
+        for i = 1:signal_length
+            % Decode the received signal with fixed thresholds  
+            % based on logic of second page of Alessandro notes
+
+            % First, we decode the data and see the wrong bits for BER
+            if received_signal(i) >= center 
+                received_data(i) = 1;
+                if received_signal(i) > std_th_plus
+                    wrong_data_bits = wrong_data_bits + 1;
+                end
+            elseif received_signal(i) < center
+                received_data(i) = 0;
+                if received_signal(i) < std_th_minus
+                    wrong_data_bits = wrong_data_bits + 1;
+                end
+            end
+            
+            % Having the data we decode the key
+            if received_data(i) == 1 && received_signal(i) <= std_th_plus
+                received_auth(i) = 0;
+                if received_signal(i) > std_th_auth_plus
+                    wrong_auth_bits = wrong_auth_bits + 1;
+                end
+            elseif received_data(i) == 0 && received_signal(i) >= std_th_minus
+                received_auth(i) = 1;
+                if received_signal(i) < std_th_auth_minus
+                    wrong_auth_bits = wrong_auth_bits + 1;
+                end
+            end
+        end
+    end
+end
 % 
 % % Calculate average BER values
 % BER_data_avg = BER_data / N;
