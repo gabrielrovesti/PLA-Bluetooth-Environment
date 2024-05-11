@@ -51,6 +51,26 @@ nota: soglie fisse
         
         calcolo BER medio
 
+DATA + CHIAVE = SEGNALE (S = s1 + s2)
+K = assunto come segnale chiave
+# Ricostruzione binaria dati
+for i in length(S):
+  received_data(i) = S(i) - K(i)
+
+# Ragionamento di sopra 
+S = data + chiave + awgn - auth 
+chiave = auth 
+received_data = segnale con del rumore 
+
+Osservazioni Alessandro:
+- Se sotto potenza nominale - bit discordi
+- Altrimenti bit concordi
+Completamente: Se siamo sotto la potenza nominale, i bit erano discordi, viceversa erano concordi
+
+Se bit segnale originale sotto potenza nominale &&
+bit decodificati chiave e dato NON discordi
+-> bit chiave errato
+
 -> questo in base al BER delle diverse situazioni, decido strategia
 decoding (quali valori della threshold di decoding uso)
 BER = misura per correggere i settaggi del canale dato il segnale pilota per verificare precisione segnale e quanto
@@ -69,6 +89,19 @@ se scalato come ampiezza, mantenga circa lo stesso andamento del segnale
 originale trasmesso.
 - Trovo quindi 2 valori che corrispondono a: {dato = 1, (auth = 0, 1)} (T1', T2'), ed altri 2 valori che corrispondono a {dato = 0, (auth = 0, 1)} (T2', T3').
 - ricavare le nuove threshold: T+, T-
+
+Ideally:
+I suggest to do:
+
+HH - highest received bit
+
+LL - lowest received bit
+
+MH - point of minimum distance from the peaks under the HH values and over the center which is the nearest to the center
+
+ML - point of minimum distance from the peaks over the LL values and under the center which is the nearest to the center 
+
+
 
 - con le nuove threshold, in questo caso, calcolare nuovo BER come prima
 BER stabile a prescindere dalla distanza

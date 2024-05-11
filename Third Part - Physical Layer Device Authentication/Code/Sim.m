@@ -1,3 +1,6 @@
+clear all;
+clc;
+
 n_round = 50; % Number of simulation rounds
 % Over class of Bluetooth, we have the following:
 % Class 1 = 20 dB in power and expected distance of 100 m.
@@ -20,9 +23,6 @@ power_Y = 10; % Power for bit 1
 
 std_th_minus = power_X;
 std_th_plus = power_Y;
-
-std_th_auth_plus = 5;
-std_th_auth_minus = -5;
 
 % Initialize signals
 data_signal = zeros(1, signal_length);
@@ -99,13 +99,6 @@ for distance = 1:max_distance
     target_FA_rates(distance) = min_FA_rate + (distance - 1) * distance_increment;
 end
 
-% Display the generated target FA and MD rates for the first distance
-fprintf('Generated Target FA Rates for Distance:\n');
-disp(target_FA_rates);
-
-fprintf('Generated Target MD Rates for Distance:\n');
-disp(target_MD_rates);
-
 %% TODO - Trovare i relativi epsilon (punto medio FA)?
 
 % Initialize signal S
@@ -153,21 +146,26 @@ received_auth=[];
 wrong_data_bits = 0;
 wrong_auth_bits = 0;
 
+%% FIXED THRESHOLDS
+
 % Loop through each distance
 for j = 1:max_distance
     % Loop through each SNR level
     for k = 1:length(SNR)
+        % Initialize arrays to store received data and authentication bits
+        received_data = zeros(1, signal_length);
+        received_auth = zeros(1, signal_length);
+
+        % Initialize counters for wrong bits
+        wrong_data_bits = 0;
+        wrong_auth_bits = 0;
 
         % Generate the received signal by adding AWGN
         received_signal = awgn(S, SNR(k));
-        wrong_data_bits = 0;
-        wrong_auth_bits = 0;
-        
+
         % Loop through each bit in the received signal
         for i = 1:signal_length
             % Decode the received signal with fixed thresholds  
-            % based on logic of second page of Alessandro notes
-
             % First, we decode the data and see the wrong bits for BER
             if received_signal(i) >= center 
                 received_data(i) = 1;
@@ -184,39 +182,28 @@ for j = 1:max_distance
             % Having the data we decode the key
             if received_data(i) == 1 && received_signal(i) <= std_th_plus
                 received_auth(i) = 0;
-                if received_signal(i) > std_th_auth_plus
-                    wrong_auth_bits = wrong_auth_bits + 1;
-                end
             elseif received_data(i) == 0 && received_signal(i) >= std_th_minus
                 received_auth(i) = 1;
-                if received_signal(i) < std_th_auth_minus
+            end
+            
+            %% WRONG (JUST TO GIVE VALUE TO WRONG_DATA_BITS)
+            % Out of nominal power
+            if received_signal(i) <= power_Y || received_signal(i) >= power_X
+                % The bits should be discordant
+                if received_data(i) == received_auth(i)
                     wrong_auth_bits = wrong_auth_bits + 1;
                 end
             end
         end
     end
 end
-% 
-% % Calculate average BER values
-% BER_data_avg = BER_data / N;
-% BER_auth_avg = BER_auth / N;
-% 
-% % Plot BER values
-% figure;
-% subplot(2, 1, 1);
-% surf(SNR, 1:max_distance, BER_data_avg');
-% title('BER Data Signal');
-% xlabel('SNR (dB)');
-% ylabel('Distance');
-% zlabel('BER');
-% colorbar;
-% 
-% subplot(2, 1, 2);
-% surf(SNR, 1:max_distance, BER_auth_avg');
-% title('BER Authentication Signal');
-% xlabel('SNR (dB)');
-% ylabel('Distance');
-% zlabel('BER');
-% colorbar;
+
+% Calculate average BER values
+BER_data = wrong_data_bits / signal_length;
+BER_auth = wrong_auth_bits / signal_length;
+
+%% VARIABLE THRESHOLDS
+
+
 
 
