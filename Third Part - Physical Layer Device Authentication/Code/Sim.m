@@ -24,6 +24,11 @@ power_Y = 10; % Power for bit 1
 std_th_minus = power_X;
 std_th_plus = power_Y;
 
+% Fixed threshold for authentication signal: assuming this is lower than
+% the original signal, since auth + data gives received signal
+std_th_auth_plus = +5;
+std_th_auth_minus = -5;
+
 % Initialize signals
 data_signal = zeros(1, signal_length);
 authentication_signal = zeros(1, signal_length);
@@ -42,9 +47,9 @@ end
 bit_sequence = randi([0, 1], 1, signal_length); % Generate random bit sequence
 for i = 1:signal_length
     if bit_sequence(i) == 1
-        authentication_signal(i) = power_Y;
+        authentication_signal(i) = std_th_auth_plus;
     else
-        authentication_signal(i) = power_X;
+        authentication_signal(i) = std_th_auth_minus;
     end
 end
 
@@ -99,8 +104,6 @@ for distance = 1:max_distance
     target_FA_rates(distance) = min_FA_rate + (distance - 1) * distance_increment;
 end
 
-%% TODO - Trovare i relativi epsilon (punto medio FA)?
-
 % Initialize signal S
 S = zeros(1, signal_length);
 
@@ -117,23 +120,6 @@ title('Combined Signal (S)');
 xlabel('Time');
 ylabel('Power');
 
-% Transformation of signal into real values
-
-% % Convert combined signal S to real values
-% S_real = 10.^(S/10);
-% 
-% % Interpolate the signal to generate a smoother curve
-% t = 1:signal_length;
-% t_interp = linspace(1, signal_length, 10*signal_length); % Increase resolution for interpolation
-% S_interp = interp1(t, S, t_interp, 'spline');
-% 
-% % Plot the interpolated signal
-% figure;
-% plot(t_interp, S_interp);
-% title('Sinusoidal Signal (Interpolated)');
-% xlabel('Time');
-% ylabel('Power');
-
 % Assuming center is 0 (given the signal is -10 and 10)
 center = 0;
 
@@ -143,10 +129,6 @@ BER_auth = zeros(max_distance, length(SNR));
 
 received_data=[];
 received_auth=[];
-wrong_data_bits = 0;
-wrong_auth_bits = 0;
-
-%% FIXED THRESHOLDS
 
 % Loop through each distance
 for j = 1:max_distance
@@ -155,13 +137,11 @@ for j = 1:max_distance
         % Initialize arrays to store received data and authentication bits
         received_data = zeros(1, signal_length);
         received_auth = zeros(1, signal_length);
-
-        % Initialize counters for wrong bits
-        wrong_data_bits = 0;
-        wrong_auth_bits = 0;
-
+        
         % Generate the received signal by adding AWGN
         received_signal = awgn(S, SNR(k));
+
+        %% FIXED THRESHOLDS
 
         % Loop through each bit in the received signal
         for i = 1:signal_length
@@ -169,40 +149,93 @@ for j = 1:max_distance
             % First, we decode the data and see the wrong bits for BER
             if received_signal(i) >= center 
                 received_data(i) = 1;
-                if received_signal(i) > std_th_plus
-                    wrong_data_bits = wrong_data_bits + 1;
+                if received_signal(i) > std_th_auth_plus
+                    received_auth(i) = 1;                
+                else
+                    received_auth(i) = 0;                
                 end
             elseif received_signal(i) < center
                 received_data(i) = 0;
-                if received_signal(i) < std_th_minus
-                    wrong_data_bits = wrong_data_bits + 1;
+                if received_signal(i) > std_th_auth_minus
+                    received_auth(i) = 1;                
+                else
+                    received_auth(i) = 0;                
                 end
             end
+        end
+
+        %% VARIABLE THRESHOLDS
+    
+        % First, there is the variable thresholds settings
+
+        % Assuming received_signal is already defined as a vector of values
+        HH = max(received_signal);    % high high
+        MH = max(received_signal)/2;  % medium high
+        ML = min(received_signal)/2;  % medium low
+        LL = min(received_signal);    % low low
+        
+        % Definition of nearest ML/LM variables
+        % made to actually refine the finding of the 4 power values for
+        % dynamic thresholding decoding
+        nearest_MH = 0;
+        nearest_ML = 0;
             
-            % Having the data we decode the key
-            if received_data(i) == 1 && received_signal(i) <= std_th_plus
+        for i = 1:length(received_signal)
+            if received_signal(i) > center % assuming is 0 (in out case)
+                if nearest_MH == 0
+                    nearest_MH = received_signal(i);  % first value
+                elseif abs(received_signal(i) - MH) < abs(nearest_MH - MH)
+                    % MH is the theoretical midhigh point, then refined
+                    % with the actual value when it is found between
+                    % the actual high interval and the highest value
+                    nearest_MH = received_signal(i);
+                end
+            else
+                if nearest_ML == 0
+                    nearest_ML = received_signal(i);  % first value
+                elseif abs(received_signal(i) - ML) < abs(nearest_ML - ML)
+                    nearest_ML = received_signal(i);
+                    % ML is the theoretical midlow point, then refined
+                    % with the actual value when it is found between
+                    % the actual low interval and the lowest value
+                end
+            end
+        end
+
+        % Second, there is the actual decoding (names matching the drawing
+        % in page 2 of 4 of Alessandro's notes of 24-04)
+
+        T1 = HH;
+        T2 = MH;
+        T3 = ML;
+        T4 = LL;
+
+        % Loop through each bit in the received signal
+        for i = 1:signal_length
+            % Decode the received signal with fixed thresholds  
+            % First, we decode the data and see the wrong bits for BER
+            if received_signal(i) >= center 
+                received_data(i) = 1;
+            elseif received_signal(i) < center
+                received_data(i) = 0;
+            end
+            % First the 0 encoding
+            if received_data(i) == 1 && received_signal(i) == T2
                 received_auth(i) = 0;
-            elseif received_data(i) == 0 && received_signal(i) >= std_th_minus
+            end
+            if received_data(i) == 0 && received_signal(i) == T4
+                received_auth(i) = 0;
+            end
+            % Then, the 1 encoding
+            if received_data(i) == 1 && received_signal(i) == T1
                 received_auth(i) = 1;
             end
-            
-            %% WRONG (JUST TO GIVE VALUE TO WRONG_DATA_BITS)
-            % Out of nominal power
-            if received_signal(i) <= power_Y || received_signal(i) >= power_X
-                % The bits should be discordant
-                if received_data(i) == received_auth(i)
-                    wrong_auth_bits = wrong_auth_bits + 1;
-                end
+            if received_data(i) == 0 && received_signal(i) == T3
+                received_auth(i) = 1;
             end
         end
     end
 end
-
-% Calculate average BER values
-BER_data = wrong_data_bits / signal_length;
-BER_auth = wrong_auth_bits / signal_length;
-
-%% VARIABLE THRESHOLDS
 
 
 
