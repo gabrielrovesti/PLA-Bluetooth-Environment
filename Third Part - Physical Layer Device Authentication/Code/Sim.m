@@ -1,7 +1,7 @@
 clear all;
 clc;
 
-n_round = 50; % Number of simulation rounds
+n_rounds = 50; % Number of simulation rounds
 % Over class of Bluetooth, we have the following:
 % Class 1 = 20 dB in power and expected distance of 100 m.
 % Here, we establish an avg range in which to send 10 dB of 50 m.,
@@ -34,9 +34,10 @@ data_signal = zeros(1, signal_length);
 authentication_signal = zeros(1, signal_length);
 
 % Generate data signal
-bit_sequence = randi([0, 1], 1, signal_length); % Generate random bit sequence
+binary_data = randi([0, 1], 1, signal_length); % Binary form
+% "Real" form - Assigning to each bit its value of relativ power 
 for i = 1:signal_length
-    if bit_sequence(i) == 1
+    if binary_data(i) == 1
         data_signal(i) = power_Y;
     else
         data_signal(i) = power_X;
@@ -44,9 +45,9 @@ for i = 1:signal_length
 end
 
 % Generate authentication signal
-bit_sequence = randi([0, 1], 1, signal_length); % Generate random bit sequence
+binary_auth = randi([0, 1], 1, signal_length);
 for i = 1:signal_length
-    if bit_sequence(i) == 1
+    if binary_auth(i) == 1
         authentication_signal(i) = std_th_auth_plus;
     else
         authentication_signal(i) = std_th_auth_minus;
@@ -124,11 +125,14 @@ ylabel('Power');
 center = 0;
 
 % Initialize arrays to store BER values
-BER_data = zeros(max_distance, length(SNR));
-BER_auth = zeros(max_distance, length(SNR));
+BER_data_avg = zeros(max_distance, length(SNR));
+BER_auth_avg = zeros(max_distance, length(SNR));
 
 received_data=[];
 received_auth=[];
+
+wrong_auth_bits = 0;
+wrong_data_bits = 0;
 
 % Loop through each distance
 for j = 1:max_distance
@@ -141,33 +145,36 @@ for j = 1:max_distance
         % Generate the received signal by adding AWGN
         received_signal = awgn(S, SNR(k));
 
-        %% FIXED THRESHOLDS
+        wrong_data_bits = 0;
+        wrong_auth_bits = 0;
 
-        % Loop through each bit in the received signal
-        for i = 1:signal_length
-            % Decode the received signal with fixed thresholds  
-            % First, we decode the data and see the wrong bits for BER
-            if received_signal(i) >= center 
-                received_data(i) = 1;
-                if received_signal(i) > std_th_auth_plus
-                    received_auth(i) = 1;                
-                else
-                    received_auth(i) = 0;                
-                end
-            elseif received_signal(i) < center
-                received_data(i) = 0;
-                if received_signal(i) > std_th_auth_minus
-                    received_auth(i) = 1;                
-                else
-                    received_auth(i) = 0;                
-                end
-            end
-        end
+        % %% FIXED THRESHOLDS
+        % 
+        % % Loop through each bit in the received signal
+        % for i = 1:signal_length
+        %     % Decode the received signal with fixed thresholds  
+        %     % First, we decode the data and see the wrong bits for BER
+        %     if received_signal(i) >= center 
+        %         received_data(i) = 1;
+        %         if received_signal(i) > std_th_auth_plus
+        %             received_auth(i) = 1;                
+        %         else
+        %             received_auth(i) = 0;                
+        %         end
+        %     elseif received_signal(i) < center
+        %         received_data(i) = 0;
+        %         if received_signal(i) > std_th_auth_minus
+        %             received_auth(i) = 1;                
+        %         else
+        %             received_auth(i) = 0;                
+        %         end
+        %     end
+        % end
 
         %% VARIABLE THRESHOLDS
-    
+        
         % First, there is the variable thresholds settings
-
+        
         % Assuming received_signal is already defined as a vector of values
         HH = max(received_signal);    % high high
         MH = max(received_signal)/2;  % medium high
@@ -179,7 +186,7 @@ for j = 1:max_distance
         % dynamic thresholding decoding
         nearest_MH = 0;
         nearest_ML = 0;
-            
+        
         for i = 1:length(received_signal)
             if received_signal(i) > center % assuming is 0 (in out case)
                 if nearest_MH == 0
@@ -201,15 +208,15 @@ for j = 1:max_distance
                 end
             end
         end
-
+        
         % Second, there is the actual decoding (names matching the drawing
         % in page 2 of 4 of Alessandro's notes of 24-04)
-
+        
         T1 = HH;
         T2 = MH;
         T3 = ML;
         T4 = LL;
-
+        
         % Loop through each bit in the received signal
         for i = 1:signal_length
             % Decode the received signal with fixed thresholds  
@@ -220,23 +227,43 @@ for j = 1:max_distance
                 received_data(i) = 0;
             end
             % First the 0 encoding
-            if received_data(i) == 1 && received_signal(i) == T2
+            if received_data(i) == 1 && received_signal(i) < T2
                 received_auth(i) = 0;
             end
-            if received_data(i) == 0 && received_signal(i) == T4
+            if received_data(i) == 0 && received_signal(i) > T4
                 received_auth(i) = 0;
             end
             % Then, the 1 encoding
-            if received_data(i) == 1 && received_signal(i) == T1
+            if received_data(i) == 1 && received_signal(i) < T1
                 received_auth(i) = 1;
             end
-            if received_data(i) == 0 && received_signal(i) == T3
+            if received_data(i) == 0 && received_signal(i) > T3
                 received_auth(i) = 1;
             end
         end
+
+        % Checking the wrong bits in both signals (Hamming distance)
+        for i = 1:signal_length
+            if received_data(i) ~= binary_data(i) 
+                wrong_data_bits = wrong_data_bits + 1;
+            end
+            if received_auth(i) ~= binary_auth(i) 
+                wrong_auth_bits = wrong_auth_bits + 1;
+            end
+        end
+
+        % Calculate BER for the current iteration
+        BER_data = wrong_data_bits / signal_length;
+        BER_auth = wrong_auth_bits / signal_length;
+
+        % Accumulate BER values for each iteration
+        BER_data_avg(j, k) = BER_data_avg(j, k) + BER_data;
+        BER_auth_avg(j, k) = BER_auth_avg(j, k) + BER_auth;
     end
 end
 
-
+% Calculate the average BER
+BER_data_avg = BER_data_avg / n_rounds;
+BER_auth_avg = BER_auth_avg / n_rounds;
 
 
