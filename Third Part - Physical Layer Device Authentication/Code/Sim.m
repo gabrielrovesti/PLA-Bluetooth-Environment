@@ -128,10 +128,6 @@ end
 % Assuming center is 0 (given the signal is -10 and 10)
 center = 0;
 
-% Initialize arrays to store BER values
-BER_data_avg = zeros(max_distance, length(SNR));
-BER_auth_avg = zeros(max_distance, length(SNR));
-
 received_data=[];
 received_auth=[];
 
@@ -178,77 +174,6 @@ for j = 1:max_distance
             end
         end
 
-        % %% VARIABLE THRESHOLDS
-        % 
-        % % First, there is the variable thresholds settings
-        % 
-        % % Assuming received_signal is already defined as a vector of values
-        % HH = max(received_signal);    % high high
-        % MH = max(received_signal)/2;  % medium high
-        % ML = min(received_signal)/2;  % medium low
-        % LL = min(received_signal);    % low low
-        % 
-        % % Definition of nearest ML/LM variables
-        % % made to actually refine the finding of the 4 power values for
-        % % dynamic thresholding decoding
-        % nearest_MH = 0;
-        % nearest_ML = 0;
-        % 
-        % for i = 1:length(received_signal)
-        %     if received_signal(i) > center % assuming is 0 (in out case)
-        %         if nearest_MH == 0
-        %             nearest_MH = received_signal(i);  % first value
-        %         elseif abs(received_signal(i) - MH) < abs(nearest_MH - MH)
-        %             % MH is the theoretical midhigh point, then refined
-        %             % with the actual value when it is found between
-        %             % the actual high interval and the highest value
-        %             nearest_MH = received_signal(i);
-        %         end
-        %     else
-        %         if nearest_ML == 0
-        %             nearest_ML = received_signal(i);  % first value
-        %         elseif abs(received_signal(i) - ML) < abs(nearest_ML - ML)
-        %             nearest_ML = received_signal(i);
-        %             % ML is the theoretical midlow point, then refined
-        %             % with the actual value when it is found between
-        %             % the actual low interval and the lowest value
-        %         end
-        %     end
-        % end
-        % 
-        % % Second, there is the actual decoding (names matching the drawing
-        % % in page 2 of 4 of Alessandro's notes of 24-04)
-        % 
-        % T1 = HH;
-        % T2 = MH;
-        % T3 = ML;
-        % T4 = LL;
-        % 
-        % % Loop through each bit in the received signal
-        % for i = 1:signal_length
-        %     % Decode the received signal with fixed thresholds  
-        %     % First, we decode the data and see the wrong bits for BER
-        %     if received_signal(i) >= center 
-        %         received_data(i) = 1;
-        %     elseif received_signal(i) < center
-        %         received_data(i) = 0;
-        %     end
-        %     % First the 0 encoding
-        %     if received_data(i) == 1 && received_signal(i) < T2
-        %         received_auth(i) = 0;
-        %     end
-        %     if received_data(i) == 0 && received_signal(i) > T4
-        %         received_auth(i) = 0;
-        %     end
-        %     % Then, the 1 encoding
-        %     if received_data(i) == 1 && received_signal(i) < T1
-        %         received_auth(i) = 1;
-        %     end
-        %     if received_data(i) == 0 && received_signal(i) > T3
-        %         received_auth(i) = 1;
-        %     end
-        % end
-
         % Checking the wrong bits in both signals (Hamming distance)
         for i = 1:signal_length
             if received_data(i) ~= binary_data(i) 
@@ -263,8 +188,104 @@ for j = 1:max_distance
         BER_data = wrong_data_bits / signal_length;
         BER_auth = wrong_auth_bits / signal_length;
 
-        % Accumulate BER values for each iteration
-        BER_data_avg(j, k) = BER_data_avg(j, k) + BER_data;
-        BER_auth_avg(j, k) = BER_auth_avg(j, k) + BER_auth;
+        % Using BER in order to actually select the different encoding
+        % method as desired
+        % if BER_auth > BER_auth_avg_final(j, k)
+        %     
+        % end
+
+        %% TO DO - Write correct BER matrix to actually select dynamic thresholding encoding
+
+        %% VARIABLE THRESHOLDS
+        
+        % First, there is the variable thresholds settings
+        
+        % Assuming received_signal is already defined as a vector of values
+        HH = max(received_signal);    % high high
+        MH = max(received_signal)/2;  % medium high
+        ML = min(received_signal)/2;  % medium low
+        LL = min(received_signal);    % low low
+        
+        % Definition of nearest ML/LM variables
+        % made to actually refine the finding of the 4 power values for
+        % dynamic thresholding decoding
+        nearest_MH = 0;
+        nearest_ML = 0;
+        
+        for i = 1:length(received_signal)
+            if received_signal(i) > center % assuming is 0 (in out case)
+                if nearest_MH == 0
+                    nearest_MH = received_signal(i);  % first value
+                elseif abs(received_signal(i) - MH) < abs(nearest_MH - MH)
+                    % MH is the theoretical midhigh point, then refined
+                    % with the actual value when it is found between
+                    % the actual high interval and the highest value
+                    nearest_MH = received_signal(i);
+                end
+            else
+                if nearest_ML == 0
+                    nearest_ML = received_signal(i);  % first value
+                elseif abs(received_signal(i) - ML) < abs(nearest_ML - ML)
+                    nearest_ML = received_signal(i);
+                    % ML is the theoretical midlow point, then refined
+                    % with the actual value when it is found between
+                    % the actual low interval and the lowest value
+                end
+            end
+        end
+        
+        % Second, there is the actual decoding (names matching the drawing
+        % in page 2 of 4 of Alessandro's notes of 24-04)
+        
+        T1 = HH;
+        T2 = MH;
+        T3 = ML;
+        T4 = LL;
+        
+        % Loop through each bit in the received signal
+        for i = 1:signal_length
+            % Decode the received signal with fixed thresholds  
+            % First, we decode the data and see the wrong bits for BER
+            if received_signal(i) >= center 
+                received_data(i) = 1;
+            elseif received_signal(i) < center
+                received_data(i) = 0;
+            end
+            % First the 0 encoding
+            if received_data(i) == 1 && received_signal(i) < T2
+                received_auth(i) = 0;
+            end
+            if received_data(i) == 0 && received_signal(i) > T4
+                received_auth(i) = 0;
+            end
+            % Then, the 1 encoding
+            if received_data(i) == 1 && received_signal(i) < T1
+                received_auth(i) = 1;
+            end
+            if received_data(i) == 0 && received_signal(i) > T3
+                received_auth(i) = 1;
+            end
+        end
+    end
+end
+
+%% TO DO - False alarm and missed detection
+%% TO DO - Represent FA-MD as matrix form (distance x SNR)
+
+% False alarm - authenticate signals
+for j = 1:max_distance
+    for k = 1:length(SNR)
+        for f = 0.01:target_FA_rates
+            
+        end
+    end
+end
+
+% Miss detection - non-authenticate signals
+for j = 1:max_distance
+    for k = 1:length(SNR)
+        for f = 0.1:target_MD_rates
+            
+        end
     end
 end
