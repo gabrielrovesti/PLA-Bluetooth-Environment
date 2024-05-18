@@ -91,7 +91,6 @@ originale trasmesso.
 - ricavare le nuove threshold: T+, T-
 
 Ideally:
-I suggest to do:
 
 HH - highest received bit
 
@@ -100,8 +99,6 @@ LL - lowest received bit
 MH - point of minimum distance from the peaks under the HH values and over the center which is the nearest to the center
 
 ML - point of minimum distance from the peaks over the LL values and under the center which is the nearest to the center 
-
-
 
 - con le nuove threshold, in questo caso, calcolare nuovo BER come prima
 BER stabile a prescindere dalla distanza

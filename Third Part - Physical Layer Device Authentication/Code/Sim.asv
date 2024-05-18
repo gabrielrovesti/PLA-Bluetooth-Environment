@@ -10,8 +10,8 @@ n_rounds = 50; % Number of simulation rounds
 % Definition of SNR
 SNR_min = 10; % Minimum SNR in dB
 SNR_max = 30; % Maximum SNR in dB
-SNR_step = -1; % SNR step size
-SNR = SNR_max:SNR_step:SNR_min;
+SNR_step = 1; % SNR step size
+SNR = SNR_min:SNR_step:SNR_max;
 power = 10.^(SNR/10);
 
 % Define signal parameters
@@ -54,19 +54,19 @@ for i = 1:signal_length
     end
 end
 
-% Plot of auth and data signals (utility)
-% figure;
-% subplot(2, 1, 1);
-% plot(data_signal);
-% title('Data Signal');
-% xlabel('Time'); % assuming we send a bit each second
-% ylabel('Power');
-% 
-% subplot(2, 1, 2);
-% plot(authentication_signal);
-% title('Authentication Signal');
-% xlabel('Time');
-% ylabel('Power');
+% Plot signals
+figure;
+subplot(2, 1, 1);
+plot(data_signal);
+title('Data Signal');
+xlabel('Time'); % assuming we send a bit each second
+ylabel('Power');
+
+subplot(2, 1, 2);
+plot(authentication_signal);
+title('Authentication Signal');
+xlabel('Time');
+ylabel('Power');
 
 % Definition of simulation parameters
 % Distance = max. 50 m. with step 1 (from 1 to 50)
@@ -114,16 +114,16 @@ for i = 1:signal_length
     S(i) = data_signal(i) + authentication_signal(i);
 end
 
-% 10 (data bit 1) + (-5) (auth bit 0) = 5 (discordant bits)
-% -10 (data bit 0) + (-5) (auth bit 0) = -15 (concordant bits)
+% 10 (data bit 1) + (-5) (auth bit 0) = discordant bits
+% -10 (data bit 0) + (-5) (auth bit 0) = -15 (concordant bits
 % -10 (data bit 0) + (5) (auth bit 1) = 5 (discordant bits)
 
-% Plot the combined signal (this is the sent signal) - utility once again
-% figure;
-% plot(S);
-% title('Combined Signal (S)');
-% xlabel('Time');
-% ylabel('Power');
+% Plot the combined signal (this is the sent signal)
+figure;
+plot(S);
+title('Combined Signal (S)');
+xlabel('Time');
+ylabel('Power');
 
 % Assuming center is 0 (given the signal is -10 and 10)
 center = 0;
@@ -160,17 +160,14 @@ for j = 1:max_distance
             % First, we decode the data and see the wrong bits for BER
             if received_signal(i) >= center 
                 received_data(i) = 1;
-                % Epsilon allows to retrieve error percentage - this value
-                % is strictly dependent on the min/max value of auth
-                % signal, given it's the smaller signal
-                if round(received_signal(i)) == std_th_auth_plus
-                    received_auth(i) = 0;                
-                else
+                if received_signal(i) > std_th_auth_plus
                     received_auth(i) = 1;                
+                else
+                    received_auth(i) = 0;                
                 end
             elseif received_signal(i) < center
                 received_data(i) = 0;
-                if round(received_signal(i)) == std_th_auth_minus
+                if received_signal(i) > std_th_auth_minus
                     received_auth(i) = 1;                
                 else
                     received_auth(i) = 0;                
@@ -268,3 +265,9 @@ for j = 1:max_distance
         BER_auth_avg(j, k) = BER_auth_avg(j, k) + BER_auth;
     end
 end
+
+% Calculate the average BER
+BER_data_avg = BER_data_avg / n_rounds;
+BER_auth_avg = BER_auth_avg / n_rounds;
+
+
