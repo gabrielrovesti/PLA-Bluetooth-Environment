@@ -134,6 +134,64 @@ received_auth=[];
 wrong_auth_bits = 0;
 wrong_data_bits = 0;
 
+% Example of BER matrix (for auth wrong bits) to select dynamic
+% thresholding encoding inside of the loop
+
+% As of now, we keep this one
+
+BER_auth_avg_final = [
+    0         0         0         0         0         0         0         0         0         0         0         0         0    0.0002    0.0004    0.0020    0.0050    0.0122    0.0248    0.0340    0.0584;
+    0         0         0         0         0         0         0         0         0         0         0         0    0.0002    0.0002    0.0002    0.0024    0.0068    0.0148    0.0234    0.0382    0.0632;
+    0         0         0         0         0         0         0         0         0         0         0         0         0    0.0004    0.0016    0.0038    0.0068    0.0144    0.0278    0.0398    0.0664;
+    0         0         0         0         0         0         0         0         0         0         0         0         0    0.0002    0.0008    0.0024    0.0062    0.0126    0.0260    0.0382    0.0592;
+    0         0         0         0         0         0         0         0         0         0         0         0         0    0.0002    0.0002    0.0026    0.0042    0.0116    0.0256    0.0330    0.0626;
+    0         0         0         0         0         0         0         0         0         0         0         0         0    0.0002    0.0006    0.0022    0.0050    0.0110    0.0242    0.0342    0.0530;
+    0         0         0         0         0         0         0         0         0         0         0         0         0         0    0.0018    0.0026    0.0064    0.0154    0.0276    0.0402    0.0620;
+    0         0         0         0         0         0         0         0         0         0         0         0    0.0002    0.0004    0.0002    0.0032    0.0048    0.0148    0.0244    0.0486    0.0622;
+    0         0         0         0         0         0         0         0         0         0         0         0         0         0    0.0004    0.0020    0.0056    0.0128    0.0194    0.0340    0.0498;
+    0         0         0         0         0         0         0         0         0         0         0         0    0.0002    0.0004    0.0012    0.0018    0.0062    0.0126    0.0240    0.0384    0.0546;
+    0         0         0         0         0         0         0         0         0         0         0         0         0    0.0006    0.0006    0.0030    0.0066    0.0130    0.0252    0.0468    0.0698;
+    0         0         0         0         0         0         0         0         0         0         0         0         0    0.0002    0.0010    0.0026    0.0056    0.0134    0.0236    0.0386    0.0606;
+    0         0         0         0    0.0002    0.0002         0         0         0    0.0002         0         0         0         0    0.0010    0.0022    0.0070    0.0164    0.0264    0.0440    0.0618;
+    0    0.0002    0.0004    0.0002    0.0002    0.0002         0    0.0004         0    0.0004    0.0006    0.0002         0         0    0.0002    0.0026    0.0054    0.0122    0.0200    0.0336    0.0502;
+    0    0.0002    0.0016    0.0008    0.0002    0.0006    0.0018    0.0002    0.0004    0.0012    0.0006    0.0010    0.0010    0.0002    0.0004    0.0028    0.0054    0.0128    0.0246    0.0368    0.0612;
+    0.0020    0.0024    0.0038    0.0024    0.0026    0.0022    0.0026    0.0032    0.0020    0.0018    0.0030    0.0026    0.0022    0.0026    0.0028    0.0028    0.0054    0.0142    0.0320    0.0488    0.0640;
+    0.0050    0.0068    0.0068    0.0062    0.0042    0.0050    0.0064    0.0048    0.0056    0.0062    0.0066    0.0056    0.0070    0.0054    0.0054    0.0066    0.0084    0.0152    0.0238    0.0386    0.0620;
+    0.0122    0.0148    0.0144    0.0126    0.0116    0.0110    0.0154    0.0148    0.0128    0.0126    0.0130    0.0134    0.0164    0.0122    0.0128    0.0142    0.0152    0.0126    0.0254    0.0396    0.0530;
+    0.0248    0.0234    0.0278    0.0260    0.0256    0.0242    0.0276    0.0244    0.0194    0.0240    0.0252    0.0236    0.0264    0.0200    0.0246    0.0320    0.0238    0.0254    0.0198    0.0302    0.0510;
+    0.0340    0.0382    0.0398    0.0382    0.0330    0.0342    0.0402    0.0486    0.0340    0.0384    0.0468    0.0386    0.0440    0.0336    0.0368    0.0488    0.0386    0.0396    0.0418    0.0592    0.0544;
+    0.0584    0.0632    0.0664    0.0592    0.0626    0.0530    0.0620    0.0622    0.0498    0.0546    0.0698    0.0606    0.0618    0.0502    0.0612    0.0640    0.0620    0.0530    0.0486    0.0524    0.0552;
+    0         0         0         0         0         0         0         0         0         0         0         0         0         0         0    0.0004         0         0    0.0002    0.0002         0;
+    0         0         0         0         0         0         0         0         0         0         0         0         0    0.0002         0         0    0.0002    0.0002         0    0.0006    0.0012;
+    0         0         0         0         0         0         0         0         0         0         0         0         0         0    0.0010    0.0006    0.0004    0.0008    0.0008    0.0008    0.0010;
+    0         0         0         0         0         0         0         0         0         0         0         0         0    0.0004    0.0002    0.0002    0.0010    0.0006    0.0004    0.0010    0.0008;
+    0         0         0         0         0         0         0         0         0         0         0         0         0         0    0.0002    0.0030    0.0012    0.0034    0.0024    0.0024    0.0032;
+    0         0         0         0         0         0         0         0         0         0         0         0         0    0.0002    0.0028    0.0030    0.0068    0.0062    0.0040    0.0088    0.0042;
+    0         0         0         0         0         0         0         0         0         0         0         0         0         0    0.0014    0.0054    0.0084    0.0132    0.0078    0.0136    0.0128;
+    0         0         0         0         0         0         0         0         0         0         0         0    0.0002    0.0002    0.0002    0.0018    0.0066    0.0150    0.0136    0.0258    0.0234;
+    0         0         0         0         0         0         0         0         0         0         0         0         0         0    0.0006    0.0030    0.0066    0.0122    0.0224    0.0384    0.0370;
+    0         0         0         0         0         0         0         0         0         0         0         0         0         0    0.0008    0.0012    0.0070    0.0120    0.0214    0.0378    0.0572;
+    0         0         0         0         0         0         0         0         0         0         0         0         0    0.0002    0.0010    0.0010    0.0086    0.0142    0.0262    0.0414    0.0622;
+    0         0         0         0         0         0         0         0         0         0         0         0         0    0.0004    0.0002    0.0034    0.0058    0.0112    0.0214    0.0326    0.0508;
+    0         0         0         0         0         0         0         0         0         0         0         0    0.0002         0    0.0002    0.0026    0.0070    0.0136    0.0270    0.0386    0.0644;
+    0         0         0         0         0         0         0         0         0         0         0         0         0    0.0002    0.0010    0.0030    0.0086    0.0140    0.0220    0.0340    0.0578;
+    0         0         0         0         0         0         0         0         0         0         0         0         0    0.0002    0.0012    0.0032    0.0042    0.0128    0.0264    0.0408    0.0576;
+    0         0         0         0         0         0         0         0         0         0         0         0         0    0.0002    0.0010    0.0024    0.0044    0.0154    0.0252    0.0360    0.0616;
+    0         0         0         0         0         0         0         0         0         0         0         0         0    0.0002    0.0006    0.0038    0.0074    0.0122    0.0218    0.0436    0.0520;
+    0         0         0         0         0         0         0         0         0         0         0         0         0         0    0.0002    0.0026    0.0070    0.0126    0.0222    0.0386    0.0534;
+    0         0         0         0         0         0         0         0         0         0         0         0         0         0    0.0008    0.0030    0.0070    0.0120    0.0214    0.0378    0.0572;
+    0         0         0         0         0         0         0         0         0         0         0         0         0         0    0.0008    0.0014    0.0048    0.0112    0.0214    0.0326    0.0508;
+    0         0         0         0         0         0         0         0         0         0         0         0         0    0.0006    0.0010    0.0014    0.0056    0.0122    0.0270    0.0386    0.0644;
+    0         0         0         0         0         0         0         0         0         0         0         0         0    0.0002    0.0010    0.0022    0.0092    0.0140    0.0220    0.0340    0.0578;
+    0         0         0         0         0         0         0         0         0         0         0         0         0         0    0.0014    0.0022    0.0056    0.0146    0.0264    0.0408    0.0576;
+    0         0         0         0         0         0         0         0         0         0         0         0         0         0    0.0006    0.0028    0.0040    0.0112    0.0252    0.0360    0.0616;
+    0         0         0         0         0         0         0         0         0         0         0         0         0    0.0002    0.0016    0.0028    0.0050    0.0128    0.0250    0.0346    0.0582;
+    0         0         0         0         0         0         0         0         0         0         0         0         0    0.0002    0.0012    0.0012    0.0074    0.0112    0.0260    0.0328    0.0568;
+    0         0         0         0         0         0         0         0         0         0         0         0         0    0.0002    0.0014    0.0018    0.0056    0.0122    0.0206    0.0386    0.0588;
+    0         0         0         0         0         0         0         0         0         0         0         0         0    0.0006    0.0010    0.0034    0.0078    0.0128    0.0256    0.0428    0.0558;
+    0         0         0         0         0         0         0         0         0         0         0         0         0    0.0002    0.0010    0.0024    0.0062    0.0122    0.0204    0.0400    0.0596;
+];
+
 % Loop through each distance
 for j = 1:max_distance
     % Loop through each SNR level
@@ -190,80 +248,76 @@ for j = 1:max_distance
 
         % Using BER in order to actually select the different encoding
         % method as desired
-        % if BER_auth > BER_auth_avg_final(j, k)
-        %     
-        % end
-
-        %% TO DO - Write correct BER matrix to actually select dynamic thresholding encoding
-
-        %% VARIABLE THRESHOLDS
-        
-        % First, there is the variable thresholds settings
-        
-        % Assuming received_signal is already defined as a vector of values
-        HH = max(received_signal);    % high high
-        MH = max(received_signal)/2;  % medium high
-        ML = min(received_signal)/2;  % medium low
-        LL = min(received_signal);    % low low
-        
-        % Definition of nearest ML/LM variables
-        % made to actually refine the finding of the 4 power values for
-        % dynamic thresholding decoding
-        nearest_MH = 0;
-        nearest_ML = 0;
-        
-        for i = 1:length(received_signal)
-            if received_signal(i) > center % assuming is 0 (in out case)
-                if nearest_MH == 0
-                    nearest_MH = received_signal(i);  % first value
-                elseif abs(received_signal(i) - MH) < abs(nearest_MH - MH)
-                    % MH is the theoretical midhigh point, then refined
-                    % with the actual value when it is found between
-                    % the actual high interval and the highest value
-                    nearest_MH = received_signal(i);
-                end
-            else
-                if nearest_ML == 0
-                    nearest_ML = received_signal(i);  % first value
-                elseif abs(received_signal(i) - ML) < abs(nearest_ML - ML)
-                    nearest_ML = received_signal(i);
-                    % ML is the theoretical midlow point, then refined
-                    % with the actual value when it is found between
-                    % the actual low interval and the lowest value
+        if BER_auth > BER_auth_avg_final(j, k)
+            %% VARIABLE THRESHOLDS
+            
+            % First, there is the variable thresholds settings
+            
+            % Assuming received_signal is already defined as a vector of values
+            HH = max(received_signal);    % high high
+            MH = max(received_signal)/2;  % medium high
+            ML = min(received_signal)/2;  % medium low
+            LL = min(received_signal);    % low low
+            
+            % Definition of nearest ML/LM variables
+            % made to actually refine the finding of the 4 power values for
+            % dynamic thresholding decoding
+            nearest_MH = 0;
+            nearest_ML = 0;
+            
+            for i = 1:length(received_signal)
+                if received_signal(i) > center % assuming is 0 (in out case)
+                    if nearest_MH == 0
+                        nearest_MH = received_signal(i);  % first value
+                    elseif abs(received_signal(i) - MH) < abs(nearest_MH - MH)
+                        % MH is the theoretical midhigh point, then refined
+                        % with the actual value when it is found between
+                        % the actual high interval and the highest value
+                        nearest_MH = received_signal(i);
+                    end
+                else
+                    if nearest_ML == 0
+                        nearest_ML = received_signal(i);  % first value
+                    elseif abs(received_signal(i) - ML) < abs(nearest_ML - ML)
+                        nearest_ML = received_signal(i);
+                        % ML is the theoretical midlow point, then refined
+                        % with the actual value when it is found between
+                        % the actual low interval and the lowest value
+                    end
                 end
             end
-        end
-        
-        % Second, there is the actual decoding (names matching the drawing
-        % in page 2 of 4 of Alessandro's notes of 24-04)
-        
-        T1 = HH;
-        T2 = MH;
-        T3 = ML;
-        T4 = LL;
-        
-        % Loop through each bit in the received signal
-        for i = 1:signal_length
-            % Decode the received signal with fixed thresholds  
-            % First, we decode the data and see the wrong bits for BER
-            if received_signal(i) >= center 
-                received_data(i) = 1;
-            elseif received_signal(i) < center
-                received_data(i) = 0;
-            end
-            % First the 0 encoding
-            if received_data(i) == 1 && received_signal(i) < T2
-                received_auth(i) = 0;
-            end
-            if received_data(i) == 0 && received_signal(i) > T4
-                received_auth(i) = 0;
-            end
-            % Then, the 1 encoding
-            if received_data(i) == 1 && received_signal(i) < T1
-                received_auth(i) = 1;
-            end
-            if received_data(i) == 0 && received_signal(i) > T3
-                received_auth(i) = 1;
+            
+            % Second, there is the actual decoding (names matching the drawing
+            % in page 2 of 4 of Alessandro's notes of 24-04)
+            
+            T1 = HH;
+            T2 = MH;
+            T3 = ML;
+            T4 = LL;
+            
+            % Loop through each bit in the received signal
+            for i = 1:signal_length
+                % Decode the received signal with fixed thresholds  
+                % First, we decode the data and see the wrong bits for BER
+                if received_signal(i) >= center 
+                    received_data(i) = 1;
+                elseif received_signal(i) < center
+                    received_data(i) = 0;
+                end
+                % First the 0 encoding
+                if received_data(i) == 1 && received_signal(i) < T2
+                    received_auth(i) = 0;
+                end
+                if received_data(i) == 0 && received_signal(i) > T4
+                    received_auth(i) = 0;
+                end
+                % Then, the 1 encoding
+                if received_data(i) == 1 && received_signal(i) < T1
+                    received_auth(i) = 1;
+                end
+                if received_data(i) == 0 && received_signal(i) > T3
+                    received_auth(i) = 1;
+                end
             end
         end
     end
