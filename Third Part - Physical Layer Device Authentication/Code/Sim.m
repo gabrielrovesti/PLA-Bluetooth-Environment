@@ -242,7 +242,7 @@ for j = 1:max_distance
         disp(wrong_auth_bits)
         disp("END OF FIXED DECODING")
         
-        %if wrong_auth_bits > n_allowed_bits_auth
+        % if wrong_auth_bits > n_allowed_bits_auth
             %% VARIABLE THRESHOLDS DECODING
 
             % Loop through each bit in the received signal
@@ -254,20 +254,27 @@ for j = 1:max_distance
                 elseif received_signal(i) < center
                     received_data(i) = 0;
                 end
-                % First the 0 encoding
-                if received_data(i) == 1 && received_signal(i) < T2
-                    received_auth(i) = 0;
-                end
-                if received_data(i) == 0 && received_signal(i) > T4
-                    received_auth(i) = 0;
-                end
-                % Then, the 1 encoding
-                if received_data(i) == 1 && received_signal(i) < T1
-                    received_auth(i) = 1;
-                end
-                if received_data(i) == 0 && received_signal(i) > T3
-                    received_auth(i) = 1;
-                end
+
+                %% TO DO - Dynamic thresholding to admit number of 
+                %% wrong bits less than fixed thresholding
+                %% when the number of wrong bits for the auth exceeds the n. of wrong bits allowed
+
+                %
+                % % First the 0 encoding
+                % if received_data(i) == 1 && received_signal(i) < T2
+                %     received_auth(i) = 0;
+                % end
+                % if received_data(i) == 0 && received_signal(i) > T4
+                %     received_auth(i) = 0;
+                % end
+                % % Then, the 1 encoding
+                % if received_data(i) == 1 && received_signal(i) < T1
+                %     received_auth(i) = 1;
+                % end
+                % if received_data(i) == 0 && received_signal(i) > T3
+                %     received_auth(i) = 1;
+                % end
+                
             end
 
             % Checking the wrong bits in both signals (Hamming distance)
