@@ -136,6 +136,9 @@ wrong_data_bits = 0;
 
 n_allowed_bits_auth = 3;
 
+BER_data_vec = zeros(max_distance, length(SNR));
+BER_auth_vec = zeros(max_distance, length(SNR));
+
 % Loop through each distance
 for j = 1:max_distance
     % Loop through each SNR level
@@ -150,7 +153,53 @@ for j = 1:max_distance
         wrong_data_bits = 0;
         wrong_auth_bits = 0;
 
-        %% FIXED THRESHOLDS
+        %% VARIABLE THRESHOLDS DEFINITION
+            
+        % First, there is the variable thresholds settings
+        
+        % Assuming received_signal is already defined as a vector of values
+        HH = max(received_signal);    % high high
+        LL = min(received_signal);    % low low
+        MH = HH/2;  % medium high
+        ML = LL/2;  % medium low
+        
+        % Definition of nearest ML/LM variables
+        % made to actually refine the finding of the 4 power values for
+        % dynamic thresholding decoding
+        nearest_MH = 0;
+        nearest_ML = 0;
+        
+        for i = 1:length(received_signal)
+            if received_signal(i) > center % assuming is 0 (in out case)
+                if nearest_MH == 0
+                    nearest_MH = received_signal(i);  % first value
+                elseif abs(received_signal(i) - MH) < abs(nearest_MH - MH)
+                    % MH is the theoretical midhigh point, then refined
+                    % with the actual value when it is found between
+                    % the actual high interval and the highest value
+                    nearest_MH = received_signal(i);
+                end
+            else
+                if nearest_ML == 0
+                    nearest_ML = received_signal(i);  % first value
+                elseif abs(received_signal(i) - ML) < abs(nearest_ML - ML)
+                    nearest_ML = received_signal(i);
+                    % ML is the theoretical midlow point, then refined
+                    % with the actual value when it is found between
+                    % the actual low interval and the lowest value
+                end
+            end
+        end
+            
+        % Second, there is the actual decoding (names matching the drawing
+        % in page 2 of 4 of Alessandro's notes of 24-04)
+        
+        T1 = HH;
+        T2 = nearest_MH;
+        T3 = nearest_ML;
+        T4 = LL;
+       
+        %% FIXED THRESHOLDS DECODING
         
         % Loop through each bit in the received signal
         for i = 1:signal_length
@@ -190,53 +239,12 @@ for j = 1:max_distance
         BER_data = wrong_data_bits / signal_length;
         BER_auth = wrong_auth_bits / signal_length;
 
-        if wrong_auth_bits > n_allowed_bits_auth
-            %% VARIABLE THRESHOLDS
-            
-            % First, there is the variable thresholds settings
-            
-            % Assuming received_signal is already defined as a vector of values
-            HH = max(received_signal);    % high high
-            MH = max(received_signal)/2;  % medium high
-            ML = min(received_signal)/2;  % medium low
-            LL = min(received_signal);    % low low
-            
-            % Definition of nearest ML/LM variables
-            % made to actually refine the finding of the 4 power values for
-            % dynamic thresholding decoding
-            nearest_MH = 0;
-            nearest_ML = 0;
-            
-            for i = 1:length(received_signal)
-                if received_signal(i) > center % assuming is 0 (in out case)
-                    if nearest_MH == 0
-                        nearest_MH = received_signal(i);  % first value
-                    elseif abs(received_signal(i) - MH) < abs(nearest_MH - MH)
-                        % MH is the theoretical midhigh point, then refined
-                        % with the actual value when it is found between
-                        % the actual high interval and the highest value
-                        nearest_MH = received_signal(i);
-                    end
-                else
-                    if nearest_ML == 0
-                        nearest_ML = received_signal(i);  % first value
-                    elseif abs(received_signal(i) - ML) < abs(nearest_ML - ML)
-                        nearest_ML = received_signal(i);
-                        % ML is the theoretical midlow point, then refined
-                        % with the actual value when it is found between
-                        % the actual low interval and the lowest value
-                    end
-                end
-            end
-            
-            % Second, there is the actual decoding (names matching the drawing
-            % in page 2 of 4 of Alessandro's notes of 24-04)
-            
-            T1 = HH;
-            T2 = MH;
-            T3 = ML;
-            T4 = LL;
-            
+        disp(wrong_auth_bits)
+        disp("END OF FIXED DECODING")
+        
+        %if wrong_auth_bits > n_allowed_bits_auth
+            %% VARIABLE THRESHOLDS DECODING
+
             % Loop through each bit in the received signal
             for i = 1:signal_length
                 % Decode the received signal with fixed thresholds  
@@ -276,7 +284,15 @@ for j = 1:max_distance
             % the new variable thresholds decoding
             BER_data = wrong_data_bits / signal_length;
             BER_auth = wrong_auth_bits / signal_length;
-        end
+
+            % Store BER values in the vectors
+            BER_data_vec(j, k) = BER_data;
+            BER_auth_vec(j, k) = BER_auth;
+
+            disp(wrong_auth_bits)
+            disp("END OF VARIABLE DECODING")
+            disp("-----------------------------")
+        %end
     end
 end
 
@@ -300,3 +316,19 @@ for j = 1:max_distance
         end
     end
 end
+
+% Plot BER_data
+% figure;
+% surf(BER_data_vec);
+% xlabel('SNR');
+% ylabel('Distance');
+% zlabel('BER_data');
+% title('BER for Data Signal');
+
+% Plot BER_auth
+figure;
+surf(BER_auth_vec);
+xlabel('SNR');
+ylabel('Distance');
+zlabel('BER_auth');
+title('BER for Authentication Signal');
