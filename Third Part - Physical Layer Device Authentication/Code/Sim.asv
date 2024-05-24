@@ -279,20 +279,18 @@ for j = 1:max_distance
                     received_auth(i) = 1;
                 end
 
-                % Theoretical perfect decoding
-
-                % if received_data(i) == 1 && received_signal(i) < T1
-                %     received_auth(i) = 1;
-                % end
-                % if received_data(i) == 1 && received_signal(i) < T2
-                %     received_auth(i) = 0;
-                % end
-                % if received_data(i) == 0 && received_signal(i) > T4
-                %     received_auth(i) = 0;
-                % end
-                % if received_data(i) == 0 && received_signal(i) > T3
-                %     received_auth(i) = 1;
-                % end
+                                if received_data(i) == 1 && received_signal(i) < T1
+                    received_auth(i) = 1;
+                end
+                if received_data(i) == 1 && received_signal(i) < T2
+                    received_auth(i) = 0;
+                end
+                if received_data(i) == 0 && received_signal(i) > T4
+                    received_auth(i) = 0;
+                end
+                if received_data(i) == 0 && received_signal(i) > T3
+                    received_auth(i) = 1;
+                end
                 
             end
 
@@ -344,12 +342,12 @@ for j = 1:max_distance
 end
 
 % Plot BER_data
-figure;
-surf(BER_data_vec);
-xlabel('SNR');
-ylabel('Distance');
-zlabel('BER_data');
-title('BER for Data Signal');
+% figure;
+% surf(BER_data_vec);
+% xlabel('SNR');
+% ylabel('Distance');
+% zlabel('BER_data');
+% title('BER for Data Signal');
 
 % Plot BER_auth
 figure;

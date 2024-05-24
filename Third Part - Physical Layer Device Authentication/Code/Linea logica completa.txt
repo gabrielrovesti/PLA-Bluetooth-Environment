@@ -116,7 +116,7 @@ FA (false alarm) = segnale autentico
 -   for k in SNR
         for f in target_FA
             for i in range(N)
-                - creo segnal authed
+                - creo segnale authed (prendo il segnale di cui sopra)
                 - trasmetto 
       (rumore canale e tutto)
                 - decodifica
@@ -134,4 +134,5 @@ FA (false alarm) = segnale autentico
       
             -> if FA_dh -> salvo th
 
-(Ragionamento per miss detection dato il segnale autentico)
+(Ragionamento per miss detection dato il segnale autentico) 
+segnale_non_authed = mix dei bit del segnale originale
