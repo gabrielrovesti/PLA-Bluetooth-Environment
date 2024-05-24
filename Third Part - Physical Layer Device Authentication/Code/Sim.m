@@ -245,7 +245,7 @@ for j = 1:max_distance
         wrong_auth_bits = 0;
         wrong_data_bits = 0;
         
-        % if wrong_auth_bits > n_allowed_bits_auth
+        if wrong_auth_bits > n_allowed_bits_auth
             %% VARIABLE THRESHOLDS DECODING
 
             % Loop through each bit in the received signal
@@ -260,10 +260,6 @@ for j = 1:max_distance
                 % elseif received_signal(i) < center
                 %     received_data(i) = 0;
                 % end
-
-                %% TO DO - Dynamic thresholding to admit number of 
-                %% wrong bits less than fixed thresholding
-                %% when the number of wrong bits for the auth exceeds the n. of wrong bits allowed
 
                 % First the 0 encoding (obtain more real values)
                 if received_data(i) == 1 && received_signal(i) < T1
@@ -318,27 +314,6 @@ for j = 1:max_distance
             disp(wrong_auth_bits)
             disp("END OF VARIABLE DECODING")
             disp("-----------------------------")
-        %end
-    end
-end
-
-%% TO DO - False alarm and missed detection
-%% TO DO - Represent FA-MD as matrix form (distance x SNR)
-
-% False alarm - authenticate signals
-for j = 1:max_distance
-    for k = 1:length(SNR)
-        for f = 0.01:target_FA_rates
-            
-        end
-    end
-end
-
-% Miss detection - non-authenticate signals
-for j = 1:max_distance
-    for k = 1:length(SNR)
-        for f = 0.1:target_MD_rates
-            
         end
     end
 end
@@ -358,3 +333,13 @@ xlabel('SNR');
 ylabel('Distance');
 zlabel('BER_auth');
 title('BER for Authentication Signal');
+
+%% TO DO - False alarm and missed detection
+%% TO DO - Represent FA-MD as matrix form (distance x SNR)
+
+% False alarm - authenticate signals
+
+
+
+% Miss detection - non-authenticate signals
+

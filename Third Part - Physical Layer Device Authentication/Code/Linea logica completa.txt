@@ -121,18 +121,34 @@ FA (false alarm) = segnale autentico
       (rumore canale e tutto)
                 - decodifica
                 - setto valore distanza hamming per decisione
-                authentication (th)
-                - verifica autentico?
+                authentication (th) = accettabile fino ad un certo numero di bit
+                - verifica autentico? (Hamming)
             calcolo FA ottenuto
             -> ripeto finchè FA ottenuto è in range target (f)
                 -> FA_Ottenuto > f -> aumento th 
       = pochi messaggi veri
                 -> FA_Ottenuto < f -> riduco th
       = troppi messaggi veri
-      come ridurre? valore precedente e valore nuovo, mi       metto a metà
-      (1.44.00 = fa_(t-1) e +1 della prima pagina)
-      
             -> if FA_dh -> salvo th
 
 (Ragionamento per miss detection dato il segnale autentico) 
 segnale_non_authed = mix dei bit del segnale originale
+
+- for j in distance
+-   for k in SNR
+        for f in target_MD
+            for i in range(N)
+                - creo segnale authed (prendo il segnale di cui sopra)
+                - trasmetto 
+      (rumore canale e tutto)
+                - decodifica
+                - setto valore distanza hamming per decisione
+                authentication (th) = accettabile fino ad un certo numero di bit
+                - verifica non autentico? (Hamming)
+            calcolo FA ottenuto
+            -> ripeto finchè FA ottenuto è in range target (m)
+                -> MD_Ottenuto > m -> aumento th 
+      = pochi messaggi veri
+                -> MD_Ottenuto < m -> riduco th
+      = troppi messaggi veri
+            -> if MD_dh -> salvo th
