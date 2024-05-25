@@ -132,17 +132,11 @@ segnale_non_authed = mix dei bit del segnale originale
 -   for k in SNR
         for f in target_MD
             for i in range(N)
-                - creo segnale authed (prendo il segnale di cui sopra)
+                - creo segnale non-authed (prendo il segnale di cui sopra e flippiamo tot bit per creare un messaggio falso)
                 - trasmetto 
-      (rumore canale e tutto)
-                - decodifica
-                - setto valore distanza hamming per decisione
-                authentication (th) = accettabile fino ad un certo numero di bit
-                - verifica non autentico? (Hamming)
-            calcolo FA ottenuto
-            -> ripeto finchè FA ottenuto è in range target (m)
-                -> MD_Ottenuto > m -> aumento th 
-      = pochi messaggi veri
-                -> MD_Ottenuto < m -> riduco th
-      = troppi messaggi veri
-            -> if MD_dh -> salvo th
+                - decodifica "statica"
+                - setto valore accettabile fino ad un certo numero di bit per decisione authentication
+                - verifica autentico (Hamming)
+            calcolo MD ottenuto
+            -> ripeto finchè MD ottenuto è in range target (f)
+                -> MD_Ottenuto > f = decodifica "dinamica" (abbassa errori sulla chiave)
