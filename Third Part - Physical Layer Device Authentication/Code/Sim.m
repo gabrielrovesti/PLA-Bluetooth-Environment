@@ -1,7 +1,9 @@
-clear all;
+%% SINGLE SIMULATION - TEMPLATE
+
+clear;
 clc;
 
-n_rounds = 50; % Number of simulation rounds
+N = 50; % Number of simulation rounds
 % Over class of Bluetooth, we have the following:
 % Class 1 = 20 dB in power and expected distance of 100 m.
 % Here, we establish an avg range in which to send 10 dB of 50 m.,
@@ -54,20 +56,6 @@ for i = 1:signal_length
     end
 end
 
-% Plot of auth and data signals (utility)
-% figure;
-% subplot(2, 1, 1);
-% plot(data_signal);
-% title('Data Signal');
-% xlabel('Time'); % assuming we send a bit each second
-% ylabel('Power');
-% 
-% subplot(2, 1, 2);
-% plot(authentication_signal);
-% title('Authentication Signal');
-% xlabel('Time');
-% ylabel('Power');
-
 % Definition of simulation parameters
 % Distance = max. 50 m. with step 1 (from 1 to 50)
 % FA rate = increasing rate
@@ -86,23 +74,29 @@ end
 max_distance = 50; % Maximum distance in meters
 
 % Initialize arrays to store target FA and MD rates
-target_FA_rates = zeros(1, max_distance);
-target_MD_rates = zeros(1, max_distance);
+target_FA_rates = zeros(max_distance, length(SNR));
+target_MD_rates = zeros(max_distance, length(SNR));
 
-% Generate target FA and MD rates for each distance
-for distance = 1:max_distance
-    % Define ranges for FA rates
-    min_FA_rate = 0.01; % Minimum FA rate
-    max_FA_rate = 0.3; % Maximum FA rate
-    
-    % Define ranges for MD rates
-    min_MD_rate = 0.1; % Minimum MD rate
-    max_MD_rate = 0.5; % Maximum MD rate
-    
-    % Generate target MD and FA rates with increasing rate for each distance
-    distance_increment = (max_MD_rate - min_MD_rate) / 50;
-    target_MD_rates(distance) = min_MD_rate + (distance - 1) * distance_increment;
-    target_FA_rates(distance) = min_FA_rate + (distance - 1) * distance_increment;
+% Define ranges for FA rates
+min_FA_rate = 0.01; % Minimum FA rate
+max_FA_rate = 0.3; % Maximum FA rate
+FA_step = 0.01; % FA step size
+
+% Define ranges for MD rates
+min_MD_rate = 0.1; % Minimum MD rate
+max_MD_rate = 0.5; % Maximum MD rate
+MD_step = 0.01; % MD step size
+
+% Generate target FA and MD rates for each distance and SNR
+for j = 1:max_distance
+    for k = 1:length(SNR)
+        % Generate target MD and FA rates with increasing rate for each distance and SNR
+        FA_increment = (max_FA_rate - min_FA_rate) / length(SNR);
+        target_FA_rates(j, k) = min_FA_rate + (k - 1) * FA_increment;
+        
+        MD_increment = (max_MD_rate - min_MD_rate) / length(SNR);
+        target_MD_rates(j, k) = min_MD_rate + (k - 1) * MD_increment;
+    end
 end
 
 % Initialize signal S
@@ -118,18 +112,8 @@ end
 % -10 (data bit 0) + (-5) (auth bit 0) = -15 (concordant bits)
 % -10 (data bit 0) + (5) (auth bit 1) = 5 (discordant bits)
 
-% Plot the combined signal (this is the sent signal) - utility once again
-% figure;
-% plot(S);
-% title('Combined Signal (S)');
-% xlabel('Time');
-% ylabel('Power');
-
 % Assuming center is 0 (given the signal is -10 and 10)
 center = 0;
-
-received_data=[];
-received_auth=[];
 
 wrong_auth_bits = 0;
 wrong_data_bits = 0;
@@ -139,17 +123,18 @@ n_allowed_bits_auth = 3;
 BER_data_vec = zeros(max_distance, length(SNR));
 BER_auth_vec = zeros(max_distance, length(SNR));
 
+% Initialize arrays to store received data and authentication bits
+received_data = zeros(1, signal_length);
+received_auth = zeros(1, signal_length);
+
 % Loop through each distance
 for j = 1:max_distance
     % Loop through each SNR level
     for k = 1:length(SNR)
-        % Initialize arrays to store received data and authentication bits
-        received_data = zeros(1, signal_length);
-        received_auth = zeros(1, signal_length);
-        
         % Generate the received signal by adding AWGN
         received_signal = awgn(S, SNR(k));
 
+        % Zeroing bits at every iteration
         wrong_data_bits = 0;
         wrong_auth_bits = 0;
 
@@ -239,9 +224,7 @@ for j = 1:max_distance
         BER_data = wrong_data_bits / signal_length;
         BER_auth = wrong_auth_bits / signal_length;
 
-        disp(wrong_auth_bits)
-        disp("END OF FIXED DECODING")
-
+        % Zeroing at every iteration
         wrong_auth_bits = 0;
         wrong_data_bits = 0;
         
@@ -310,10 +293,6 @@ for j = 1:max_distance
             % Store BER values in the vectors
             BER_data_vec(j, k) = BER_data;
             BER_auth_vec(j, k) = BER_auth;
-
-            disp(wrong_auth_bits)
-            disp("END OF VARIABLE DECODING")
-            disp("-----------------------------")
         end
     end
 end
@@ -334,12 +313,4 @@ ylabel('Distance');
 zlabel('BER_auth');
 title('BER for Authentication Signal');
 
-%% TO DO - False alarm and missed detection
-%% TO DO - Represent FA-MD as matrix form (distance x SNR)
-
-% False alarm - authenticate signals
-
-
-
-% Miss detection - non-authenticate signals
 

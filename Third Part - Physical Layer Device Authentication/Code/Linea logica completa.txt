@@ -118,18 +118,12 @@ FA (false alarm) = segnale autentico
             for i in range(N)
                 - creo segnale authed (prendo il segnale di cui sopra)
                 - trasmetto 
-      (rumore canale e tutto)
-                - decodifica
-                - setto valore distanza hamming per decisione
-                authentication (th) = accettabile fino ad un certo numero di bit
-                - verifica autentico? (Hamming)
+                - decodifica "statica"
+                - setto valore accettabile fino ad un certo numero di bit per decisione authentication
+                - verifica autentico (Hamming)
             calcolo FA ottenuto
             -> ripeto finchè FA ottenuto è in range target (f)
-                -> FA_Ottenuto > f -> aumento th 
-      = pochi messaggi veri
-                -> FA_Ottenuto < f -> riduco th
-      = troppi messaggi veri
-            -> if FA_dh -> salvo th
+                -> FA_Ottenuto > f = decodifica "dinamica" (abbassa errori sulla chiave)
 
 (Ragionamento per miss detection dato il segnale autentico) 
 segnale_non_authed = mix dei bit del segnale originale
