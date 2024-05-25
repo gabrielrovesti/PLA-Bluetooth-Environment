@@ -257,8 +257,7 @@ for j = 1:max_distance
                     BER_auth_vec(j, k) = BER_auth;
                 end
 
-                
-
+              
             end
         end
     end

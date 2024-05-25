@@ -123,7 +123,16 @@ FA (false alarm) = segnale autentico
                 - verifica autentico (Hamming)
             calcolo FA ottenuto
             -> ripeto finchè FA ottenuto è in range target (f)
-                -> FA_Ottenuto > f = decodifica "dinamica" (abbassa errori sulla chiave)
+                ->if(FA_Ottenuto > f)
+                      for i in range(N)
+                        - creo segnale authed
+                        - trasmetto 
+                        - decodifica "dinamica"
+                        - setto valore accettabile fino ad un certo numero di bit per decisione authentication
+                        - verifica autentico (Hamming)
+                    calcolo FA ottenuto
+                  else
+                      continue with next target FA (means loop goes on normally)
 
 (Ragionamento per miss detection dato il segnale autentico) 
 segnale_non_authed = mix dei bit del segnale originale
@@ -139,4 +148,13 @@ segnale_non_authed = mix dei bit del segnale originale
                 - verifica autentico (Hamming)
             calcolo MD ottenuto
             -> ripeto finchè MD ottenuto è in range target (f)
-                -> MD_Ottenuto > f = decodifica "dinamica" (abbassa errori sulla chiave)
+                ->if(MD_Ottenuto > f)
+                      for i in range(N)
+                        - creo segnale non-authed
+                        - trasmetto 
+                        - decodifica "dinamica"
+                        - setto valore accettabile fino ad un certo numero di bit per decisione authentication
+                        - verifica autentico (Hamming)
+                    calcolo MD ottenuto
+                  else
+                      continue with next target MD (means loop goes on normally)
