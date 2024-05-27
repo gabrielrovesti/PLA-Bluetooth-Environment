@@ -96,6 +96,7 @@ for j = 1:max_distance
                 end
                 S(in) = data_signal(in) + authentication_signal(in);
             end
+
             %% TRANSMISSION OF ENTIRE SIGNAL
 
             % Signal at receiver
@@ -104,52 +105,6 @@ for j = 1:max_distance
             % Zeroing bits at every iteration
             wrong_data_bits = 0;
             wrong_auth_bits = 0;
-    
-            %% VARIABLE THRESHOLDS DEFINITION
-                
-            % First, there is the variable thresholds settings
-            
-            % Assuming received_signal is already defined as a vector of values
-            HH = max(received_signal);    % high high
-            LL = min(received_signal);    % low low
-            MH = HH/2;  % medium high
-            ML = LL/2;  % medium low
-            
-            % Definition of nearest ML/LM variables
-            % made to actually refine the finding of the 4 power values for
-            % dynamic thresholding decoding
-            nearest_MH = 0;
-            nearest_ML = 0;
-            
-            for i = 1:length(received_signal)
-                if received_signal(i) > center % assuming is 0 (in out case)
-                    if nearest_MH == 0
-                        nearest_MH = received_signal(i);  % first value
-                    elseif abs(received_signal(i) - MH) < abs(nearest_MH - MH)
-                        % MH is the theoretical midhigh point, then refined
-                        % with the actual value when it is found between
-                        % the actual high interval and the highest value
-                        nearest_MH = received_signal(i);
-                    end
-                else
-                    if nearest_ML == 0
-                        nearest_ML = received_signal(i);  % first value
-                    elseif abs(received_signal(i) - ML) < abs(nearest_ML - ML)
-                        nearest_ML = received_signal(i);
-                        % ML is the theoretical midlow point, then refined
-                        % with the actual value when it is found between
-                        % the actual low interval and the lowest value
-                    end
-                end
-            end
-                
-            % Second, there is the actual decoding (names matching the drawing
-            % in page 2 of 4 of Alessandro's notes of 24-04)
-            
-            T1 = HH;
-            T2 = nearest_MH;
-            T3 = nearest_ML;
-            T4 = LL;
            
             %% FIXED THRESHOLDS DECODING
             
@@ -187,7 +142,7 @@ for j = 1:max_distance
                 end
             end
 
-            disp("FIXED DECODING: " + wrong_auth_bits)
+            % disp("FIXED DECODING: " + wrong_auth_bits)
 
             % Calculate BER for the current iteration
             BER_data = wrong_data_bits / signal_length;
@@ -196,7 +151,53 @@ for j = 1:max_distance
             wrong_auth_bits = 0;
             wrong_data_bits = 0;
             
-            % if wrong_auth_bits > n_allowed_bits_auth
+            if wrong_auth_bits > n_allowed_bits_auth
+                %% VARIABLE THRESHOLDS DEFINITION
+                
+                % First, there is the variable thresholds settings
+                
+                % Assuming received_signal is already defined as a vector of values
+                HH = max(received_signal);    % high high
+                LL = min(received_signal);    % low low
+                MH = HH/2;  % medium high
+                ML = LL/2;  % medium low
+                
+                % Definition of nearest ML/LM variables
+                % made to actually refine the finding of the 4 power values for
+                % dynamic thresholding decoding
+                nearest_MH = 0;
+                nearest_ML = 0;
+                
+                for i = 1:length(received_signal)
+                    if received_signal(i) > center % assuming is 0 (in out case)
+                        if nearest_MH == 0
+                            nearest_MH = received_signal(i);  % first value
+                        elseif abs(received_signal(i) - MH) < abs(nearest_MH - MH)
+                            % MH is the theoretical midhigh point, then refined
+                            % with the actual value when it is found between
+                            % the actual high interval and the highest value
+                            nearest_MH = received_signal(i);
+                        end
+                    else
+                        if nearest_ML == 0
+                            nearest_ML = received_signal(i);  % first value
+                        elseif abs(received_signal(i) - ML) < abs(nearest_ML - ML)
+                            nearest_ML = received_signal(i);
+                            % ML is the theoretical midlow point, then refined
+                            % with the actual value when it is found between
+                            % the actual low interval and the lowest value
+                        end
+                    end
+                end
+                    
+                % Second, there is the actual decoding (names matching the drawing
+                % in page 2 of 4 of Alessandro's notes of 24-04)
+                
+                T1 = HH;
+                T2 = nearest_MH;
+                T3 = nearest_ML;
+                T4 = LL;
+
                 %% VARIABLE THRESHOLDS DECODING
     
                 % Loop through each bit in the received signal
@@ -252,7 +253,7 @@ for j = 1:max_distance
                     end
                 end
 
-                disp("VARIABLE DECODING: " + wrong_auth_bits)
+                % disp("VARIABLE DECODING: " + wrong_auth_bits)
     
                 % Calculate BER for the current iteration considering 
                 % the new variable thresholds decoding
@@ -262,7 +263,7 @@ for j = 1:max_distance
                 % Store BER values in the vectors
                 BER_data_vec(j, k) = BER_data;
                 BER_auth_vec(j, k) = BER_auth;
-            % end
+            end
 
             % Check again if wrong bits are over the threshold
             % and see if message could be considered wrong
