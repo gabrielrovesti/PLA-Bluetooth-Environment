@@ -248,13 +248,13 @@ for j = 1:max_distance
                 if received_data(i) == 1 && received_signal(i) < T1
                     received_auth(i) = 1;
                 end
-                if received_data(i) == 1 && received_signal(i) < T2
+                if received_data(i) == 1 && received_signal(i) <= T2
                     received_auth(i) = 0;
                 end
                 if received_data(i) == 0 && received_signal(i) > T4
                     received_auth(i) = 0;
                 end
-                if received_data(i) == 0 && received_signal(i) > T3
+                if received_data(i) == 0 && received_signal(i) >= T3
                     received_auth(i) = 1;
                 end
 

@@ -186,7 +186,9 @@ for j = 1:max_distance
                     wrong_auth_bits = wrong_auth_bits + 1;
                 end
             end
-    
+
+            disp("FIXED DECODING: " + wrong_auth_bits)
+
             % Calculate BER for the current iteration
             BER_data = wrong_data_bits / signal_length;
             BER_auth = wrong_auth_bits / signal_length;
@@ -194,7 +196,7 @@ for j = 1:max_distance
             wrong_auth_bits = 0;
             wrong_data_bits = 0;
             
-            if wrong_auth_bits > n_allowed_bits_auth
+            % if wrong_auth_bits > n_allowed_bits_auth
                 %% VARIABLE THRESHOLDS DECODING
     
                 % Loop through each bit in the received signal
@@ -214,13 +216,13 @@ for j = 1:max_distance
                     if received_data(i) == 1 && received_signal(i) < T1
                         received_auth(i) = 1;
                     end
-                    if received_data(i) == 1 && received_signal(i) < T2
+                    if received_data(i) == 1 && received_signal(i) <= T2
                         received_auth(i) = 0;
                     end
                     if received_data(i) == 0 && received_signal(i) > T4
                         received_auth(i) = 0;
                     end
-                    if received_data(i) == 0 && received_signal(i) > T3
+                    if received_data(i) == 0 && received_signal(i) >= T3
                         received_auth(i) = 1;
                     end
     
@@ -249,6 +251,8 @@ for j = 1:max_distance
                         wrong_auth_bits = wrong_auth_bits + 1;
                     end
                 end
+
+                disp("VARIABLE DECODING: " + wrong_auth_bits)
     
                 % Calculate BER for the current iteration considering 
                 % the new variable thresholds decoding
@@ -258,7 +262,7 @@ for j = 1:max_distance
                 % Store BER values in the vectors
                 BER_data_vec(j, k) = BER_data;
                 BER_auth_vec(j, k) = BER_auth;
-            end
+            % end
 
             % Check again if wrong bits are over the threshold
             % and see if message could be considered wrong
@@ -272,9 +276,6 @@ for j = 1:max_distance
             % very performing from a practical point of view; so, as
             % condition, we impose the the wrong bits to be dependent on
             % the encoding, so to be just greater than 0
-            
-            disp("Current FA rate");
-            disp(false_alarm);
 
             % FA Matrix for each distance/SNR
             % Plot FA values after sim
