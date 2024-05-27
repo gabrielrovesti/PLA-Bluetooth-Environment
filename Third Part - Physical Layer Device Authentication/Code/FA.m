@@ -38,14 +38,6 @@ authentication_signal = zeros(1, signal_length);
 % Define simulation parameters
 max_distance = 50; % Maximum distance in meters
 
-% Initialize arrays to store target FA rates
-target_FA_rates = zeros(max_distance, length(SNR));
-
-% Define ranges for FA rates
-min_FA_rate = 0.01; % Minimum FA rate
-max_FA_rate = 0.3; % Maximum FA rate
-FA_step = 0.01; % FA step size
-
 % Initialize data-auth-signal mixed
 binary_data = [];
 binary_auth=[];
@@ -59,17 +51,13 @@ wrong_auth_bits = 0;
 wrong_data_bits = 0;
 
 % Allowed wrong bits
-n_allowed_bits_auth = 3;
+n_allowed_bits_auth = 3; % Given average values of error, this was found to be an average good value
 
 % BER analysis vectors
 BER_data_vec = zeros(max_distance, length(SNR));
 BER_auth_vec = zeros(max_distance, length(SNR));
 
 % Received data and authentication bits
-received_data = zeros(1, signal_length);
-received_auth = zeros(1, signal_length);
-
-% Initialize data at receiver
 received_data = zeros(1, signal_length);
 received_auth = zeros(1, signal_length);
 
