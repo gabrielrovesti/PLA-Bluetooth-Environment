@@ -264,17 +264,11 @@ for j = 1:max_distance
             % and see if message could be considered wrong
             % so increment false alarm
 
-            if wrong_auth_bits > 0
-                false_alarm = false_alarm + 1;
+            if wrong_auth_bits > n_allowed_bits_auth
+                  false_alarm = false_alarm + 1;
             end
 
-            % Assuming encoding is without effect of noise, the decoding is
-            % very performing from a practical point of view; so, as
-            % condition, we impose the the wrong bits to be dependent on
-            % the encoding, so to be just greater than 0
-            
-            disp("Current FA rate");
-            disp(false_alarm);
+            disp(faò)
 
             % FA Matrix for each distance/SNR
             % Plot FA values after sim
