@@ -224,16 +224,13 @@ for j = 1:max_distance
                 end
             end
 
-            disp("FIXED DECODING: " + wrong_auth_bits)
+            % disp("FIXED DECODING: " + wrong_auth_bits)
 
             % Calculate BER for the current iteration
             BER_data = wrong_data_bits / signal_length;
             BER_auth = wrong_auth_bits / signal_length;
 
-            wrong_auth_bits = 0;
-            wrong_data_bits = 0;
-            
-            %if wrong_auth_bits > n_allowed_bits_auth
+            if wrong_auth_bits > n_allowed_bits_auth
                 % VARIABLE THRESHOLDS DEFINITION
                 
                 % First, there is the variable thresholds settings
@@ -325,6 +322,9 @@ for j = 1:max_distance
                     % end
                 end
     
+                wrong_auth_bits = 0;
+                wrong_data_bits = 0;
+
                 % Checking the wrong bits in both signals (Hamming distance)
                 for i = 1:signal_length
                     if received_data(i) ~= binary_data(i) 
@@ -335,14 +335,14 @@ for j = 1:max_distance
                     end
                 end
 
-                disp("VARIABLE DECODING: " + wrong_auth_bits)
+                % disp("VARIABLE DECODING: " + wrong_auth_bits)
     
                 % Calculate BER for the current iteration considering 
                 % the new variable thresholds decoding
                 BER_data = wrong_data_bits / signal_length;
                 BER_auth = wrong_auth_bits / signal_length;
     
-            %end
+            end
 
             % Store BER values in the vectors
             BER_data_vec(j, k) = BER_data;

@@ -267,14 +267,6 @@ for j = 1:max_distance
             % condition, we impose the the wrong bits to be dependent on
             % the encoding, so to be just greater than 0
 
-            % FA Matrix for each distance/SNR
-            % Plot FA values after sim
-            % then color differently the difference
-            % between target FA and calculated one
-            % If this is not lower or equal for FA Target
-            % for that distance-SNR, coloring it red
-            % When we are below, we color it green
-
             % After loop FA(d, SNR) = false_alarm / number_messages
             % (in our case N)
 

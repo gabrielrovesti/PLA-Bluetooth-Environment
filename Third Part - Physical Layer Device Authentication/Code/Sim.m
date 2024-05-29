@@ -297,20 +297,4 @@ for j = 1:max_distance
     end
 end
 
-% Plot BER_data
-figure;
-surf(BER_data_vec);
-xlabel('SNR');
-ylabel('Distance');
-zlabel('BER_data');
-title('BER for Data Signal');
-
-% Plot BER_auth
-figure;
-surf(BER_auth_vec);
-xlabel('SNR');
-ylabel('Distance');
-zlabel('BER_auth');
-title('BER for Authentication Signal');
-
 
