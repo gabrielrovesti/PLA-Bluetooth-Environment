@@ -192,7 +192,7 @@ for j = 1:max_distance
             wrong_auth_bits = 0;
             wrong_data_bits = 0;
             
-            %if wrong_auth_bits > n_allowed_bits_auth
+            if wrong_auth_bits > n_allowed_bits_auth
                 % VARIABLE THRESHOLDS DEFINITION
                 
                 % First, there is the variable thresholds settings
@@ -300,26 +300,26 @@ for j = 1:max_distance
                 % the new variable thresholds decoding
                 BER_data = wrong_data_bits / signal_length;
                 BER_auth = wrong_auth_bits / signal_length;
-    
-                % Store BER values in the vectors
-                BER_data_vec(j, k) = BER_data;
-                BER_auth_vec(j, k) = BER_auth;
+            end
+        
+            % Store BER values in the vectors
+            BER_data_vec(j, k) = BER_data;
+            BER_auth_vec(j, k) = BER_auth;
 
-                % Check if message was interpreted right but was false
-                % anyway (complementary to the false alarm control), so to
-                % interpret false negatives messages - message was accepted
-                % but here we are sending only false data, so increment it
-    
-                if wrong_auth_bits <= n_allowed_bits_auth
-                    missed_detection = missed_detection + 1;
-                end
-    
-                % Assuming encoding is without effect of noise, the decoding is
-                % very performing from a practical point of view; so, as
-                % condition, we impose the the wrong bits to be dependent on
-                % the encoding, so to be just greater than 0
+            % Check if message was interpreted right but was false
+            % anyway (complementary to the false alarm control), so to
+            % interpret false negatives messages - message was accepted
+            % but here we are sending only false data, so increment it
 
-            %end
+            if wrong_auth_bits <= n_allowed_bits_auth
+                missed_detection = missed_detection + 1;
+            end
+
+            % Assuming encoding is without effect of noise, the decoding is
+            % very performing from a practical point of view; so, as
+            % condition, we impose the the wrong bits to be dependent on
+            % the encoding, so to be just greater than 0
+
         end
         MD_matrix(j, k) = missed_detection;
         missed_detection = 0;

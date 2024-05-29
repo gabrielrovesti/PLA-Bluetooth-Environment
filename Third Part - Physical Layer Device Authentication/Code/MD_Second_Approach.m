@@ -1,4 +1,4 @@
-%% FALSE ALARM COMPUTATION - ONLY AUTHED SIGNALS
+%% MISS DETECTION COMPUTATION - ONLY NON-AUTHED SIGNALS
 
 clear;
 clc;
@@ -51,7 +51,7 @@ wrong_auth_bits = 0;
 wrong_data_bits = 0;
 
 % Allowed wrong bits
-n_allowed_bits_auth = 3; % Given average values of error, this was found to be an average good value
+n_allowed_bits_auth = 3;
 
 % BER analysis vectors
 BER_data_vec = zeros(max_distance, length(SNR));
@@ -62,12 +62,22 @@ received_data = zeros(1, signal_length);
 received_auth = zeros(1, signal_length);
 
 % False alarm counter
-false_alarm = 0;
-FA_matrix = zeros(max_distance, length(SNR));
+missed_detection = 0;
+MD_matrix = zeros(max_distance, length(SNR));
+
+% Decoded signals for MITM
+MITM_decoded_auth = zeros(1, signal_length);
+MITM_decoded_data = zeros(1, signal_length);
+
+% Actual signals to be sent from MITM
+MITM_auth_signal = zeros(1, signal_length);
+MITM_data_signal = zeros(1, signal_length);
 
 for j = 1:max_distance
     for k = 1:length(SNR)
         for index = 1:N
+            %% ORIGINAL MESSAGE DEFINITION AND TRANSMISSION 
+
             % Generate auth and data signals and mixing 
             binary_data = randi([0, 1], 1, signal_length); 
             binary_auth = randi([0, 1], 1, signal_length);
@@ -85,16 +95,100 @@ for j = 1:max_distance
                 S(in) = data_signal(in) + authentication_signal(in);
             end
 
-            %% TRANSMISSION OF ENTIRE SIGNAL
-
-            % Signal at receiver
+            % SENT SIGNAL
             received_signal = awgn(S, SNR(k));
+
+            %% MAN IN THE MIDDLE SNIFFING
             
+            MITM_received_signal = received_signal;
+            
+            % Find the maximum and minimum peaks of the received signal
+            MITM_max_peak = max(MITM_received_signal);
+            MITM_min_peak = min(MITM_received_signal);
+            
+            % Calculate the midpoint between the maximum and minimum peaks
+            MITM_midpoint = (MITM_max_peak + MITM_min_peak) / 2;
+            
+            % Set the power thresholds based on the midpoint
+            MITM_power_threshold_high = MITM_midpoint + (MITM_max_peak - MITM_midpoint) * 0.5;
+            
+            % high power threshold is set to a value halfway between the midpoint 
+            % and the maximum peak. This assumes that values above this threshold 
+            % are likely to represent a binary '1'.
+
+            MITM_power_threshold_low = MITM_midpoint - (MITM_midpoint - MITM_min_peak) * 0.5;
+            
+            % low power threshold is set to a value halfway between the midpoint and the minimum peak.
+            % This assumes that values below this threshold are likely 
+            % to represent a binary '0'.
+
+            % MITM's decoding attempt
+
+            % Tries variable decoding using a defined center (midpoint)
+
+            for i = 1:signal_length
+                if received_signal(i) >= MITM_midpoint 
+                    MITM_decoded_data(i) = 1;
+                    if received_signal(i) < MITM_power_threshold_high
+                        MITM_decoded_auth(i) = 0;                
+                    else
+                        MITM_decoded_auth(i) = 1;                
+                    end
+                elseif received_signal(i) < MITM_midpoint
+                    MITM_decoded_data(i) = 0;
+                    if received_signal(i) > MITM_power_threshold_low
+                        MITM_decoded_auth(i) = 1;                
+                    else
+                        MITM_decoded_auth(i) = 0;                
+                    end
+                end
+            end
+           
+            % Transmit the MITM's decoded signal with power values
+            MITM_transmitted_signal = zeros(1, signal_length);
+
+            % Determining power values in order to mix data and auth
+
+            % Assuming the MITM has knowledge of the channel and the auth
+            % signal conditiones the power of the actual data signal so to
+            % have smaller key thresholds conditioning data thresholds
+            % = using peaks of data and then simply calculating lesser data
+            % thresholds
+
+            power_data_plus = (MITM_max_peak / 2) + 1; 
+            % knowing that data bits are transmitted with a high power
+            % compared to higher ones, we compute as transmitted power for
+            % data bits the maximum peak of power divided by 2 plus 1, in
+            % order to have a higher power for data transmission
+            power_data_minus = (MITM_min_peak / 2) + 1;
+
+            power_auth_plus = MITM_max_peak - power_data_plus;
+            power_auth_minus = MITM_min_peak + power_data_minus;
+ 
+            for i = 1:signal_length
+                if MITM_decoded_auth(i) == 1
+                    MITM_auth_signal(i) = power_auth_plus;
+                else
+                    MITM_auth_signal(i) = power_auth_minus;
+                end
+                if MITM_decoded_data(i) == 1
+                    MITM_data_signal(i) = power_data_plus;
+                else
+                    MITM_data_signal(i) = power_data_minus;
+                end
+                MITM_transmitted_signal(i) = MITM_auth_signal(i) + MITM_data_signal(i);
+            end
+            
+            % Assign the MITM's transmitted signal to the received_signal variable
+            received_signal = MITM_transmitted_signal;
+
+            %% RECEIVER DECODING
+
             % Zeroing bits at every iteration
             wrong_data_bits = 0;
             wrong_auth_bits = 0;
            
-            %% FIXED THRESHOLDS DECODING
+            % FIXED THRESHOLDS DECODING
             
             % Loop through each bit in the received signal
             for i = 1:signal_length
@@ -130,7 +224,7 @@ for j = 1:max_distance
                 end
             end
 
-            % disp("FIXED DECODING: " + wrong_auth_bits)
+            disp("FIXED DECODING: " + wrong_auth_bits)
 
             % Calculate BER for the current iteration
             BER_data = wrong_data_bits / signal_length;
@@ -139,8 +233,8 @@ for j = 1:max_distance
             wrong_auth_bits = 0;
             wrong_data_bits = 0;
             
-            if wrong_auth_bits > n_allowed_bits_auth
-                %% VARIABLE THRESHOLDS DEFINITION
+            %if wrong_auth_bits > n_allowed_bits_auth
+                % VARIABLE THRESHOLDS DEFINITION
                 
                 % First, there is the variable thresholds settings
                 
@@ -186,7 +280,7 @@ for j = 1:max_distance
                 T3 = nearest_ML;
                 T4 = LL;
 
-                %% VARIABLE THRESHOLDS DECODING
+                % VARIABLE THRESHOLDS DECODING
     
                 % Loop through each bit in the received signal
                 for i = 1:signal_length
@@ -241,25 +335,26 @@ for j = 1:max_distance
                     end
                 end
 
-                % disp("VARIABLE DECODING: " + wrong_auth_bits)
+                disp("VARIABLE DECODING: " + wrong_auth_bits)
     
                 % Calculate BER for the current iteration considering 
                 % the new variable thresholds decoding
                 BER_data = wrong_data_bits / signal_length;
                 BER_auth = wrong_auth_bits / signal_length;
     
-            end
+            %end
 
             % Store BER values in the vectors
             BER_data_vec(j, k) = BER_data;
             BER_auth_vec(j, k) = BER_auth;
 
-            % Check again if wrong bits are over the threshold
-            % and see if message could be considered wrong
-            % so increment false alarm
+            % Check if message was interpreted right but was false
+            % anyway (complementary to the false alarm control), so to
+            % interpret false negatives messages - message was accepted
+            % but here we are sending only false data, so increment it
 
-            if wrong_auth_bits > 0
-                false_alarm = false_alarm + 1;
+            if wrong_auth_bits <= n_allowed_bits_auth
+                missed_detection = missed_detection + 1;
             end
 
             % Assuming encoding is without effect of noise, the decoding is
@@ -267,19 +362,8 @@ for j = 1:max_distance
             % condition, we impose the the wrong bits to be dependent on
             % the encoding, so to be just greater than 0
 
-            % FA Matrix for each distance/SNR
-            % Plot FA values after sim
-            % then color differently the difference
-            % between target FA and calculated one
-            % If this is not lower or equal for FA Target
-            % for that distance-SNR, coloring it red
-            % When we are below, we color it green
-
-            % After loop FA(d, SNR) = false_alarm / number_messages
-            % (in our case N)
-
         end
-        FA_matrix(j, k) = false_alarm;
-        false_alarm = 0;
+        MD_matrix(j, k) = missed_detection;
+        missed_detection = 0;
     end
 end
