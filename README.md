@@ -1,4 +1,4 @@
-# ATCNS-Project
+# PLA-Bluetooth-Environment
 Repository for the Advanced Topics in Computer and Network Security project, UniPD, M.Sc. Computer Science
 
 ## Structure
